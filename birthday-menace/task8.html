@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task 08: Pop-Up War | Birthday Menace v800.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800&family=Pacifico&family=Bungee+Inline&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p4: #D81B60; --gold: #FFD700; --win95: #c0c0c0;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; background-color: #050505; }
+
+        /* --- 🏷️ 1. HUD (ENHANCED VISIBILITY) --- */
+        #top-bar { position: fixed; top: 0; width: 100%; height: 100px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 5000; pointer-events: none; }
+        
+        .hud-item { 
+            background: #fff; border: 8px solid var(--p4); padding: 12px 40px; 
+            border-radius: 20px; font-weight: 900; color: var(--p4); font-size: 2.2rem; 
+            pointer-events: auto; box-shadow: 0 10px 0 #000;
+        }
+        #iq-display { background: #000; color: #ff0055; border-color: #ff0055; box-shadow: 0 10px 0 #333; }
+        #key-hud { border-color: #b8860b; color: #b8860b; }
+
+        /* --- 💡 TOP BUTTONS --- */
+        .top-btn { position: fixed; top: 120px; padding: 10px 25px; border-radius: 50px; font-weight: 800; cursor: pointer; z-index: 4500; border: 3px solid white; transition: 0.2s; }
+        #hint-btn { left: 35%; background: #222; color: var(--gold); border-color: var(--gold); }
+        #skip-btn { right: 35%; background: #d32f2f; color: white; }
+        .top-btn:hover { transform: scale(1.1); }
+
+        /* --- 🪟 2. POP-UPS (NPC AWARE) --- */
+        .popup {
+            position: absolute; width: 380px; background: var(--win95);
+            border: 4px solid white; border-right-color: #333; border-bottom-color: #333;
+            box-shadow: 15px 15px 0px rgba(0,0,0,0.7); z-index: 1000; padding: 3px;
+        }
+        .popup-header { background: #000080; color: white; padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-family: monospace; }
+        .close-x { background: var(--win95); border: 2px solid white; border-right-color: #333; border-bottom-color: #333; color: black; width: 32px; height: 32px; text-align: center; line-height: 24px; font-size: 22px; cursor: pointer; font-weight: 900; }
+        .popup-body { padding: 30px 20px; text-align: center; color: #000; font-weight: 900; font-size: 1.3rem; border: 2px inset white; margin: 5px; background: #fff; }
+        .click-status { display: block; font-size: 0.9rem; color: #d32f2f; margin-top: 15px; }
+
+        /* --- 😱 NPC AREA --- */
+        .npc-box { position: fixed; bottom: -220px; right: 40px; z-index: 6000; display: flex; flex-direction: column; align-items: center; transition: 0.4s; }
+        .npc-active { bottom: 0 !important; }
+        .bubble { background: white; border: 6px solid var(--p4); padding: 20px; border-radius: 30px; font-weight: 900; color: var(--p4); margin-bottom: 10px; text-align: center; max-width: 300px; font-size: 1.1rem; }
+
+        /* --- 📜 3. MODALS --- */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        .card { background: white; padding: 40px; border-radius: 50px; border: 12px solid var(--p4); text-align: center; max-width: 550px; }
+        
+        .akshara-face { width: 180px; height: 180px; object-fit: cover; border-radius: 50%; border: 8px solid var(--p4); margin: 15px auto; display: block; background: #ccc; }
+        .choice-row { display: flex; gap: 20px; justify-content: center; margin-top: 25px; }
+        .choice-btn { padding: 15px 35px; border-radius: 50px; font-weight: 900; border: none; cursor: pointer; font-size: 1.1rem; color: white; transition: 0.2s; }
+        .btn-yes { background: #4caf50; } .btn-no { background: #d32f2f; }
+
+        /* --- 🎟️ 4. TICKETS --- */
+        #reward-screen, #skip-ticket { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 600px; height: 450px; z-index: 9500; transition: 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .ticket-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #FFD700, #FFFACD, #FFD700); border: 15px solid #b8860b; border-radius: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Pacifico'; text-align: center; }
+        .skip-theme { background: linear-gradient(135deg, #ffcdd2, #ef9a9a); border-color: #d32f2f; }
+        
+        #scratch-canvas { position: absolute; inset: 0; z-index: 10; cursor: crosshair; }
+        #next-btn { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) scale(0); background: #2ecc71; color: white; padding: 25px 100px; border-radius: 100px; font-weight: 900; font-size: 1.8rem; border: 8px solid white; cursor: pointer; transition: 0.5s; z-index: 11000; }
+        .show { transform: translateX(-50%) scale(1) !important; }
+        
+        #the-key { position: absolute; width: 180px; filter: drop-shadow(0 0 30px gold); cursor: pointer; z-index: 5; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <div id="key-hud" class="hud-item">🔑 KEYS: 3</div>
+        <div id="iq-display" class="hud-item">IQ: --</div>
+    </div>
+
+    <button id="hint-btn" class="top-btn" onclick="alert('SECRET HINT:\nHard Level (7-9): Click X 10 times!\nExtreme Boss (10): Click X 30 times!')">💡 HINT</button>
+    <button id="skip-btn" class="top-btn" onclick="Game.openSkip()">⏩ SKIP TASK</button>
+
+    <div id="modal-rules" class="modal">
+        <div class="card">
+            <h1 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.8rem;">Firewall Breach</h1>
+            <p style="font-weight: 900; font-size: 1.3rem;">The Monkey has locked the key with 10 layers. <br><br>Close them all to proceed or confess your sins to skip!</p>
+            <button style="background:var(--p4); color:white; padding: 20px 80px; border-radius: 50px; font-weight:900; border:none; cursor:pointer; font-size: 1.5rem;" onclick="Game.start()">START HACKING</button>
+        </div>
+    </div>
+
+    <div id="modal-skip" class="modal" style="display:none;">
+        <div class="card">
+            <h1 style="font-family:'Pacifico'; color:var(--p4);">CONFESSION TIME</h1>
+            <img src="assets/images/akshara-face.png" class="akshara-face" alt="Akshara">
+            <p style="font-weight: 900; font-size: 1.4rem; color: #d32f2f;">Admit the truth to bypass:</p>
+            <h2 style="font-family:'Bungee Inline';">"Akshara is a Monkey"</h2>
+            <div class="choice-row">
+                <button class="choice-btn btn-yes" onclick="Game.finalizeSkip('AKSHARA IS A MONKEY')">YES, ADMIT</button>
+                <button class="choice-btn btn-no" onclick="Game.finalizeSkip('AKSHARA, I\'M IDIOT')">NO, I'M IDIOT</button>
+            </div>
+        </div>
+    </div>
+
+    <svg id="the-key" viewBox="0 0 100 100" onmouseover="Game.onKeyHover()">
+        <path d="M30 10 C 10 10 10 40 30 40 C 40 40 45 30 55 30 L 80 30 L 80 45 L 90 45 L 90 30 L 95 30 C 100 30 100 20 95 20 L 55 20 C 45 20 40 10 30 10 Z" fill="gold" stroke="#B8860B" stroke-width="2"/>
+    </svg>
+
+    <div id="npc-mouth" class="npc-box">
+        <div class="bubble" id="npc-msg">...</div>
+        <img src="assets/images/npc-head.png" width="220">
+    </div>
+
+    <div id="reward-screen">
+        <div class="ticket-bg">
+            <h1 style="color: #b8860b; font-size: 3.5rem; margin: 0;">AD-BLOCKER</h1>
+            <p style="font-weight: 900; font-size: 1.4rem; color: #333;">AKSHARA: KEY #5 SECURED!</p>
+        </div>
+        <canvas id="scratch-canvas" width="600" height="450"></canvas>
+    </div>
+
+    <div id="skip-ticket">
+        <div class="ticket-bg skip-theme">
+            <h1 style="color: #d32f2f; font-size: 2.8rem; margin: 0;">OFFICIAL RECORD</h1>
+            <img src="assets/images/akshara-face.png" class="akshara-face" style="width:140px; height:140px; border-color:white;">
+            <h2 id="verdict-text" style="font-family:'Bungee Inline'; font-size: 1.8rem; color: #333; margin-top:15px;">ADMITTED!</h2>
+        </div>
+    </div>
+
+    <button id="next-btn" onclick="Game.navigate()">PROCEED TO TASK 09</button>
+
+    <script>
+        const Game = {
+            state: {
+                iq: 150, currentPop: 0, totalPop: 10,
+                active: false, solved: false, revealed: false, currentXClicks: 0
+            },
+
+            init() {
+                let saved = parseInt(localStorage.getItem('menace_iq')) || 150;
+                this.state.iq = (saved > 150) ? 150 : saved;
+                this.updateUI();
+            },
+
+            updateUI() {
+                document.getElementById('iq-display').innerText = `IQ: ${this.state.iq}`;
+            },
+
+            start() {
+                document.getElementById('modal-rules').style.display = 'none';
+                this.state.active = true;
+                this.triggerMock("TOUCH THE KEY IF YOU DARE!", 3000);
+            },
+
+            // --- SKIP SYSTEM ---
+            openSkip() {
+                document.getElementById('modal-rules').style.display = 'none';
+                document.querySelectorAll('.popup').forEach(p => p.remove());
+                document.getElementById('modal-skip').style.display = 'flex';
+                this.state.active = false;
+            },
+
+            finalizeSkip(text) {
+                document.getElementById('modal-skip').style.display = 'none';
+                document.getElementById('verdict-text').innerText = text;
+                this.state.solved = true;
+                this.state.iq -= 20; // Skip penalty
+                this.updateUI();
+                
+                setTimeout(() => {
+                    document.getElementById('skip-ticket').style.transform = 'translate(-50%, -50%) scale(1)';
+                    document.getElementById('next-btn').classList.add('show');
+                }, 500);
+            },
+
+            onKeyHover() {
+                if(!this.state.active || this.state.solved || document.getElementById('active-popup')) return;
+                this.spawnPopup();
+            },
+
+            spawnPopup() {
+                this.state.currentPop++;
+                this.state.currentXClicks = 0;
+                const p = document.createElement('div');
+                p.className = 'popup'; p.id = "active-popup";
+                
+                let diff = "EASY";
+                if(this.state.currentPop > 3) diff = "MEDIUM";
+                if(this.state.currentPop > 6) diff = "HARD";
+                if(this.state.currentPop === 10) diff = "ULTRA BOSS";
+
+                // NPC AVOIDANCE: restricted to Top 60% and Left 70%
+                const safeW = window.innerWidth * 0.65;
+                const safeH = window.innerHeight * 0.55;
+                p.style.left = (Math.random() * (safeW - 380) + 50) + 'px';
+                p.style.top = (Math.random() * (safeH - 300) + 120) + 'px';
+                
+                if(diff === "ULTRA BOSS") { p.style.width = "85vw"; p.style.left = "5vw"; p.style.top = "12vh"; }
+
+                p.innerHTML = `
+                    <div class="popup-header" style="background:${diff === 'ULTRA BOSS' ? '#000' : '#000080'}">
+                        <span>CRITICAL ERROR: ${diff}</span>
+                        <div class="close-x" onmouseover="Game.moveX(this, '${diff}')" onclick="Game.handleX(this, '${diff}')">X</div>
+                    </div>
+                    <div class="popup-body">
+                        HA! MISS AGAIN!<br>USER IQ TOO LOW!
+                        <span class="click-status" id="click-status"></span>
+                    </div>
+                `;
+                document.body.appendChild(p);
+                this.triggerMock("HAHA! ANOTHER ONE!", 1500);
+            },
+
+            moveX(btn, diff) {
+                if(diff === "EASY") return;
+                if(diff === "MEDIUM" && !btn.dataset.moved) {
+                    btn.style.position = "absolute"; btn.style.right = "100px"; btn.dataset.moved = "true";
+                }
+                if(diff === "HARD" || diff === "ULTRA BOSS") {
+                    btn.style.position = "absolute";
+                    btn.style.right = Math.random() * 80 + "%"; btn.style.top = Math.random() * 80 + "%";
+                }
+            },
+
+            handleX(btn, diff) {
+                this.state.currentXClicks++;
+                let goal = 1;
+                if(diff === "HARD") goal = 10;
+                if(diff === "ULTRA BOSS") goal = 30;
+
+                const status = document.getElementById('click-status');
+                if(goal > 1) status.innerText = `SHIELD STRENGTH: ${goal - this.state.currentXClicks}`;
+
+                if(this.state.currentXClicks >= goal) {
+                    btn.closest('.popup').remove();
+                    if(this.state.currentPop >= this.state.totalPop) this.win();
+                } else {
+                    this.state.iq -= 1; this.updateUI();
+                }
+            },
+
+            win() {
+                this.state.solved = true;
+                setTimeout(() => {
+                    document.getElementById('reward-screen').style.transform = 'translate(-50%, -50%) scale(1)';
+                    this.initScratch();
+                }, 1000);
+            },
+
+            triggerMock(txt, dur) {
+                const n = document.getElementById('npc-mouth');
+                document.getElementById('npc-msg').innerText = txt;
+                n.classList.add('npc-active');
+                setTimeout(() => n.classList.remove('npc-active'), dur);
+            },
+
+            initScratch() {
+                const c = document.getElementById('scratch-canvas'); const ctx = c.getContext('2d');
+                ctx.fillStyle = '#D4AF37'; ctx.fillRect(0,0,600,450); ctx.globalCompositeOperation = 'destination-out';
+                const run = (e) => {
+                    const r = c.getBoundingClientRect(); const x = (e.clientX || e.touches[0].clientX) - r.left; const y = (e.clientY || e.touches[0].clientY) - r.top;
+                    ctx.beginPath(); ctx.arc(x,y,50,0,Math.PI*2); ctx.fill();
+                    if(!this.state.revealed) { document.getElementById('next-btn').classList.add('show'); this.state.revealed = true; }
+                };
+                c.addEventListener('mousemove', run); c.addEventListener('touchmove', (e) => { e.preventDefault(); run(e); });
+            },
+
+            navigate() {
+                let fIQ = this.state.iq; if(fIQ > 150) fIQ = 150;
+                localStorage.setItem('menace_iq', fIQ);
+                window.location.href = 'task9.html';
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

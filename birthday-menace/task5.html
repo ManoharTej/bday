@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task 05: Surprise Boxes | Birthday Menace v140.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800&family=Pacifico&family=Bungee+Inline&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p1: #FFD1DC; --p2: #FFB7B2; --p3: #FF85A1; --p4: #D81B60;
+            --gold: #FFD700; --ribbon-shadow: #85103a;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; background-color: var(--p4); }
+
+        /* --- 🌈 1. STATIONARY DIAGONAL BACKGROUND --- */
+        .bg-stripes {
+            position: fixed; inset: 0; z-index: -10;
+            background: repeating-linear-gradient(45deg, var(--p1) 0, var(--p1) 120px, var(--p2) 120px, var(--p2) 240px, var(--p3) 240px, var(--p3) 360px, var(--p4) 360px, var(--p4) 480px);
+        }
+        .glow-sweep { position: fixed; inset: 0; z-index: -9; pointer-events: none; background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); background-size: 300% 300%; animation: sweep 7s linear infinite; }
+        @keyframes sweep { 0% { background-position: 150% 150%; } 100% { background-position: -150% -150%; } }
+
+        /* --- 🏷️ 2. HUD --- */
+        .task-label { position: fixed; top: 30px; left: 45px; color: white; font-weight: 800; font-size: 1.6rem; text-shadow: 2px 2px 5px rgba(0,0,0,0.4); z-index: 1000; }
+        #game-hud { position: fixed; top: 20px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
+        .hud-ribbon { position: relative; background: var(--p4); color: white; padding: 12px 85px; font-family: 'Pacifico'; font-size: 1.7rem; border-radius: 4px; box-shadow: 0 12px 35px rgba(0,0,0,0.35); cursor: pointer; pointer-events: auto; }
+        .hud-ribbon::before { content: ''; position: absolute; left: -55px; top: 10px; border: 28px solid var(--ribbon-shadow); border-right-color: var(--ribbon-shadow); border-left-color: transparent; z-index: -1; }
+        .hud-ribbon::after { content: ''; position: absolute; right: -55px; top: 10px; border: 28px solid var(--ribbon-shadow); border-left-color: var(--ribbon-shadow); border-right-color: transparent; z-index: -1; }
+        
+        #iq-box { position: fixed; top: 100px; right: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid var(--p4); color: var(--p4); font-weight: 800; font-size: 1.6rem; box-shadow: 0 10px 0px var(--p4); z-index: 1000; }
+        #key-count-box { position: fixed; top: 100px; left: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid #b8860b; color: #b8860b; font-weight: 800; font-size: 1.6rem; z-index: 1000; }
+
+        /* --- 🧩 3. BOX GRID AREA --- */
+        #active-task-layer { position:fixed; inset:0; display:flex; flex-direction: column; align-items:center; justify-content:center; z-index: 60; }
+        .grid-9 { display: grid; grid-template-columns: repeat(3, 140px); gap: 25px; pointer-events: auto; }
+
+        .mystery-box {
+            width: 140px; height: 140px; background: white; border: 8px solid var(--p4);
+            border-radius: 30px; display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; cursor: pointer; transition: 0.3s; box-shadow: 0 15px 0px var(--ribbon-shadow);
+        }
+        .box-shake { animation: shakeBox 0.15s infinite; border-color: #ff0000 !important; }
+        @keyframes shakeBox { 0% { transform: translate(1px, 1px) rotate(0deg); } 20% { transform: translate(-1px, -2px) rotate(-1deg); } 40% { transform: translate(-3px, 0px) rotate(1deg); } 100% { transform: translate(1px, -1px) rotate(0deg); } }
+
+        .box-opened { background: #f0f0f0 !important; box-shadow: none !important; cursor: default; }
+
+        /* --- 😱 4. JUMP SCARE --- */
+        #jumpscare-overlay { position: fixed; inset: 0; background: black; z-index: 10000; display: none; align-items: center; justify-content: center; overflow: hidden; }
+        #scare-img { width: 140%; height: 140%; object-fit: cover; animation: zoomIn 0.4s forwards; }
+        @keyframes zoomIn { from { transform: scale(0.6); } to { transform: scale(1.3); } }
+
+        /* --- 🗣️ 5. NPC MOUTH --- */
+        .npc-mouth-system { position: fixed; bottom: -550px; z-index: 2000; display: flex; flex-direction: column; align-items: center; transition: 0.6s; }
+        .npc-active { bottom: 0 !important; }
+        .mouth-bubble { background: white; padding: 20px 30px; border-radius: 25px; border: 5px solid var(--p4); font-weight: 800; color: var(--p4); margin-bottom: 5px; text-align: center; max-width: 350px; }
+
+        /* --- 🎟️ 6. SCRATCH CARD --- */
+        #scratch-container { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 550px; height: 320px; z-index: 9000; transition: 0.7s; }
+        #scratch-surface { position: absolute; top: 0; left: 0; border-radius: 25px; cursor: crosshair; }
+        .ticket-underlay { width: 100%; height: 100%; background: linear-gradient(135deg, #FFD700, #FFFACD, #FFD700); border: 12px solid #b8860b; border-radius: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Pacifico'; text-align: center; }
+
+        #next-task-btn { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%) scale(0); z-index: 9500; background: #4CAF50; color: white; padding: 22px 80px; border-radius: 100px; font-weight: 800; font-size: 1.6rem; border: 8px solid white; cursor: pointer; transition: 0.5s; }
+        #next-task-btn.reveal { transform: translateX(-50%) scale(1); }
+
+        .menace-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; border: 12px solid var(--p4); padding: 50px; border-radius: 70px; z-index: 10000; text-align: center; width: 480px; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-active { transform: translate(-50%, -50%) scale(1); }
+        .choice-btn { background: var(--p3); color: white; padding: 18px 60px; border-radius: 80px; font-weight: 800; cursor: pointer; border: 6px solid white; font-size: 1.3rem; }
+
+        .huge-penalty { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%); font-family: 'Bungee Inline'; font-size: 10rem; color: red; z-index: 20000; pointer-events: none; animation: popImpact 1.4s forwards; text-shadow: 12px 12px 0px white; }
+        @keyframes popImpact { 0% { transform: scale(0); } 100% { transform: scale(1.4); opacity:0; } }
+    </style>
+</head>
+<body>
+
+    <div class="bg-stripes"></div>
+    <div class="glow-sweep"></div>
+    <div class="task-label">Who is monkey?</div>
+
+    <header id="game-hud">
+        <div class="hud-ribbon" ondblclick="Game.devSkip()">Task 05/10</div>
+        <div id="iq-box">IQ: --</div>
+        <div id="key-count-box">🔑 Keys: 3</div>
+    </header>
+
+    <div id="jumpscare-overlay">
+        <img id="scare-img" src="assets/images/menace-monkey.png">
+    </div>
+
+    <div id="modal-intro" class="menace-modal">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.8rem;">Sacrifice Time!</h2>
+        <p style="font-weight:700;">To search the 9 boxes, you must **Sacrifice 1 Key**.</p>
+        <button class="choice-btn" style="background:#333;" onclick="Game.sacrificeAndStart()">SACRIFICE & START</button>
+    </div>
+
+    <div id="modal-trap" class="menace-modal">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.8rem;">TOO SLOW!</h2>
+        <p style="font-weight:700; font-size: 1.2rem;">While you were screaming, the Monkey stole another key!</p>
+        <div style="background:#eee; padding:20px; border-radius:20px; margin: 20px 0; font-weight:800; color:red;">
+            KEY DEDUCTED! IQ -30!
+        </div>
+        <button class="choice-btn" style="background:var(--p4);" onclick="Game.triggerFinalSequence()">I HATE THIS MONKEY</button>
+    </div>
+
+    <main id="active-task-layer">
+        <div class="grid-9" id="box-grid"></div>
+    </main>
+
+    <div id="npc-mouth-overlay" class="npc-mouth-system" style="left:45px;">
+        <div class="mouth-bubble" id="mock-msg">slacky performance!</div>
+        <img src="assets/images/npc-head.png" width="220">
+    </div>
+
+    <div id="scratch-container">
+        <div class="ticket-underlay">
+            <h1 style="color: #b8860b; font-size: 3rem; margin: 0;">UNLUCKY TICKET</h1>
+            <p style="font-weight: 900; font-size: 1.2rem; color: #333;">AKSHARA: 1 KEY REMAINING</p>
+        </div>
+        <canvas id="scratch-surface" width="550" height="320"></canvas>
+    </div>
+
+    <button id="next-task-btn" onclick="Game.finalNavigation()">PROCEED TO TASK 06</button>
+
+    <script>
+        const Game = {
+            state: {
+                iq: 150, keys: 3, isRunning: false, isSolved: false, revealed: false
+            },
+
+            init() {
+                localStorage.setItem('menace_iq', 150);
+                this.updateUI();
+                this.createBoxes();
+                document.getElementById('modal-intro').classList.add('modal-active');
+            },
+
+            updateUI() {
+                document.getElementById('iq-box').innerText = `IQ: ${this.state.iq}`;
+                document.getElementById('key-count-box').innerText = `🔑 Keys: ${this.state.keys}`;
+            },
+
+            createBoxes() {
+                const grid = document.getElementById('box-grid');
+                for(let i=0; i<9; i++) {
+                    const box = document.createElement('div');
+                    box.className = 'mystery-box';
+                    box.innerText = '?';
+                    box.onclick = () => this.boxClick(box);
+                    grid.appendChild(box);
+                }
+            },
+
+            sacrificeAndStart() {
+                this.state.keys = 2; // Sacrifice 1
+                this.state.isRunning = true;
+                this.updateUI();
+                document.getElementById('modal-intro').classList.remove('modal-active');
+            },
+
+            boxClick(el) {
+                if(!this.state.isRunning || this.state.isSolved) return;
+                this.state.isRunning = false;
+
+                // Suspense Shake
+                el.classList.add('box-shake');
+                
+                setTimeout(() => {
+                    this.triggerJumpScare();
+                }, 2000);
+            },
+
+            triggerJumpScare() {
+                const overlay = document.getElementById('jumpscare-overlay');
+                overlay.style.display = 'flex';
+                
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    this.massReveal();
+                }, 600);
+            },
+
+            massReveal() {
+                const boxes = document.querySelectorAll('.mystery-box');
+                // Skeleton logic: all skeletons except 2
+                boxes.forEach((b, idx) => {
+                    b.classList.remove('box-shake');
+                    b.classList.add('box-opened');
+                    b.innerText = '';
+                    
+                    if(idx === 4) b.innerText = '🔑'; // The Key Box
+                    else if(idx === 0) b.innerText = '😱'; // The Scare Box
+                    else b.innerText = '💀'; // Skeletons
+                });
+
+                setTimeout(() => {
+                    document.getElementById('modal-trap').classList.add('modal-active');
+                }, 1000);
+            },
+
+            triggerFinalSequence() {
+                document.getElementById('modal-trap').classList.remove('modal-active');
+                
+                // The Penalty Twist
+                this.state.keys = 1; // Deduct key, now at 1
+                this.state.iq -= 30; // Deduct 30 IQ
+                this.updateUI();
+                this.triggerHugePenalty("-30");
+                
+                // Show NPC mocking
+                const npc = document.getElementById('npc-mouth-overlay');
+                document.getElementById('mock-msg').innerText = "Too slow! I'll take that key back. Nah nah keep it!";
+                npc.classList.add('npc-active');
+
+                setTimeout(() => {
+                    document.getElementById('scratch-container').style.transform = 'translate(-50%, -50%) scale(1)';
+                    this.initScratch();
+                }, 2000);
+            },
+
+            initScratch() {
+                const c = document.getElementById('scratch-surface');
+                const ctx = c.getContext('2d');
+                ctx.fillStyle = '#D4AF37'; ctx.fillRect(0,0,550,320);
+                ctx.globalCompositeOperation = 'destination-out';
+                const scratch = (e) => {
+                    const r = c.getBoundingClientRect(); const x = (e.clientX || e.touches[0].clientX)-r.left; const y = (e.clientY || e.touches[0].clientY)-r.top;
+                    ctx.beginPath(); ctx.arc(x,y,45,0,Math.PI*2); ctx.fill();
+                    if(!this.state.revealed) {
+                        document.getElementById('next-task-btn').classList.add('reveal');
+                        this.state.revealed = true;
+                    }
+                };
+                c.addEventListener('mousemove', scratch); c.addEventListener('touchmove', scratch);
+            },
+
+            finalNavigation() {
+                // Same slacky logic
+                let iq = this.state.iq;
+                if(iq >= 150) localStorage.setItem('menace_iq', 150);
+                else {
+                    localStorage.setItem('menace_iq', iq - 10);
+                    alert("Slacky performance! Additional -10 IQ deduction.");
+                }
+                window.location.href = 'task6.html';
+            },
+
+            triggerHugePenalty(val) {
+                const p = document.createElement('div');
+                p.className = 'huge-penalty'; p.innerText = val;
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 1400);
+            },
+
+            devSkip() { const p = prompt("BYPASS?"); if(p) window.location.href = `task${p}.html`; }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

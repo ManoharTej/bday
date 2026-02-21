@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task 01: Who is monkey? | Birthday Menace Engine v60.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800&family=Pacifico&family=Bungee+Inline&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p1: #FFD1DC; --p2: #FFB7B2; --p3: #FF85A1; --p4: #D81B60;
+            --glass: rgba(255, 255, 255, 0.96);
+            --gold-metallic: #D4AF37;
+            --gold-shine: #FFD700;
+            --ribbon-shadow: #85103a;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; background-color: var(--p4); }
+
+        .menace-bg-stripes { position: fixed; inset: 0; z-index: -10; background: repeating-linear-gradient(45deg, var(--p1) 0, var(--p1) 120px, var(--p2) 120px, var(--p2) 240px, var(--p3) 240px, var(--p3) 360px, var(--p4) 360px, var(--p4) 480px); }
+        .menace-glow-sweep { position: fixed; inset: 0; z-index: -9; pointer-events: none; background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); background-size: 300% 300%; animation: sequentialGlow 7s linear infinite; }
+        @keyframes sequentialGlow { 0% { background-position: 150% 150%; } 100% { background-position: -150% -150%; } }
+
+        .task-label { position: fixed; top: 30px; left: 45px; color: white; font-weight: 800; font-size: 1.6rem; text-shadow: 2px 2px 5px rgba(0,0,0,0.4); z-index: 1000; }
+        #game-hud { position: fixed; top: 20px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
+        .hud-ribbon { position: relative; background: var(--p4); color: white; padding: 12px 85px; font-family: 'Pacifico', cursive; font-size: 1.7rem; border-radius: 4px; box-shadow: 0 12px 35px rgba(0,0,0,0.35); cursor: pointer; transition: 0.3s; }
+        .hud-ribbon::before { content: ''; position: absolute; left: -55px; top: 10px; border: 28px solid var(--ribbon-shadow); border-right-color: var(--ribbon-shadow); border-left-color: transparent; z-index: -1; }
+        .hud-ribbon::after { content: ''; position: absolute; right: -55px; top: 10px; border: 28px solid var(--ribbon-shadow); border-left-color: var(--ribbon-shadow); border-right-color: transparent; z-index: -1; }
+        #iq-box { position: fixed; top: 100px; right: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid var(--p4); color: var(--p4); font-weight: 800; font-size: 1.6rem; box-shadow: 0 10px 0px var(--p4); z-index: 1000; }
+        #timer-box { position: fixed; top: 100px; left: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid #333; color: #333; font-weight: 800; font-size: 1.6rem; z-index: 1000; }
+
+        #active-task-layer { position:fixed; inset:0; display:flex; flex-direction: column; align-items:center; justify-content:center; pointer-events:none; z-index: 60; }
+        #puzzle-board { display: grid; grid-template-columns: repeat(3, 115px); grid-template-rows: repeat(3, 115px); gap: 15px; background: white; padding: 25px; border-radius: 40px; border: 12px solid var(--p4); box-shadow: 0 60px 150px rgba(0,0,0,0.5); transition: all 1s ease; pointer-events: auto; }
+        .tile { width: 115px; height: 115px; border-radius: 18px; cursor: pointer; background-image: url('assets/images/akshara-face.png'); background-size: 345px 345px; position: relative; transition: transform 0.25s, background-image 1.2s ease, border-radius 1s; }
+        .tile::after { content: attr(data-num); position: absolute; top: 8px; left: 8px; background: var(--p4); color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; border: 2px solid white; transition: 0.4s ease; }
+        .tile-reveal::after { opacity: 0 !important; }
+        .tile-reveal { border-radius: 0 !important; cursor: default !important; }
+        .tile-empty { background: none !important; border: 3px dashed #ddd; cursor: default; }
+
+        .npc-mouth-system { position: fixed; bottom: -500px; z-index: 800; display: flex; flex-direction: column; align-items: center; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .npc-active { bottom: 0 !important; }
+        .npc-laughing { animation: laughShake 0.2s infinite; }
+        @keyframes laughShake { 0% { transform: rotate(0); } 50% { transform: rotate(5deg) scale(1.05); } 100% { transform: rotate(-5deg); } }
+        .mouth-bubble { background: white; padding: 10px 20px; border-radius: 15px; border: 4px solid var(--p4); font-weight: 800; color: var(--p4); margin-bottom: 5px; text-align: center; max-width: 180px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.1); font-size: 0.9rem; }
+
+        #reward-hand { position: fixed; right: -650px; bottom: 0; transition: 1.5s; z-index: 6000; }
+        #reward-hand.active { right: 0; }
+        #golden-banana { filter: drop-shadow(0 0 25px gold); cursor: pointer; transition: 0.3s; }
+        
+        #scratch-container { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 500px; height: 300px; z-index: 9000; transition: 0.7s; }
+        #scratch-canvas { position: absolute; top: 0; left: 0; border-radius: 20px; cursor: crosshair; touch-action: none; }
+        .ticket-underlay { width: 100%; height: 100%; background: linear-gradient(135deg, #FFD700, #FFFACD, #FFD700); border: 10px solid #b8860b; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Pacifico'; text-align: center; box-shadow: 0 0 150px rgba(0,0,0,0.6); }
+
+        #next-task-btn { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%) scale(0); z-index: 9500; background: #4CAF50; color: white; padding: 20px 80px; border-radius: 100px; font-weight: 800; font-size: 1.6rem; border: 8px solid white; cursor: pointer; transition: 0.5s; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+        #next-task-btn.visible { transform: translateX(-50%) scale(1); }
+
+        .menace-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; border: 12px solid var(--p4); padding: 50px; border-radius: 70px; z-index: 10000; text-align: center; width: 480px; box-shadow: 0 0 200px rgba(0,0,0,0.5); transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-active { transform: translate(-50%, -50%) scale(1); }
+        .choice-btn { background: var(--p3); color: white; padding: 18px 60px; border-radius: 80px; font-weight: 800; cursor: pointer; border: 6px solid white; font-size: 1.3rem; transition: 0.2s; }
+        #hint-button { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #333; color: white; border: 5px solid white; padding: 15px 45px; border-radius: 50px; font-weight: 800; cursor: pointer; z-index: 1000; }
+        .huge-penalty { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%); font-family: 'Bungee Inline'; font-size: 12rem; color: red; z-index: 10000; pointer-events: none; animation: popImpact 1.4s forwards; text-shadow: 12px 12px 0px white; }
+        @keyframes popImpact { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 40% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; } 100% { transform: translate(-50%, -95%) scale(1); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="menace-bg-stripes"></div>
+    <div class="menace-glow-sweep"></div>
+    <div class="task-label">Who is monkey?</div>
+
+    <header id="game-hud">
+        <div id="timer-box">03:00</div>
+        <div class="hud-ribbon" onclick="Game.resetAndGo()">Task 01/10</div>
+        <div id="iq-box">IQ: --</div>
+    </header>
+
+    <div id="modal-greeting" class="menace-modal">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 3rem;">I Got Ur Back!</h2>
+        <p style="font-weight:700; font-size:1.3rem;">I reset IQ to 48. Reach 150+ to prove ur human!</p>
+        <button class="choice-btn" onclick="Game.showRules()">OK</button>
+    </div>
+
+    <div id="modal-rules" class="menace-modal">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.5rem;">Gauntlet Rules</h2>
+        <div style="text-align:left; font-weight:700; color:#444; background:#f5f5f5; padding:30px; border-radius:40px; margin-bottom: 25px;">
+            <p>✅ <b>Right Move:</b> +2 IQ</p>
+            <p>❌ <b>Wrong Move:</b> -4 IQ</p>
+            <p>⏱️ <b>Time Limit:</b> 3 Minutes</p>
+            <p>🎯 <b>Goal:</b> 150+ IQ</p>
+        </div>
+        <button class="choice-btn" style="background:#4CAF50;" onclick="Game.commenceGame()">START TASK</button>
+    </div>
+
+    <div id="modal-victory" class="menace-modal">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.8rem;">VICTORY!</h2>
+        <p style="font-weight:700; font-size:1.4rem;">Wow, I didn't know u could, so take your reward!</p>
+        <button class="choice-btn" style="background:var(--gold-shine); color:#333;" onclick="Game.spawnReward()">GET REWARD</button>
+    </div>
+
+    <main id="active-task-layer">
+        <div id="puzzle-board"></div>
+    </main>
+
+    <button id="hint-button" onclick="Game.triggerHint()">SHOW HINT (-20 IQ)</button>
+
+    <div id="npc-wrong" class="npc-mouth-system" style="left:40px;">
+        <div class="mouth-bubble">such a noob</div>
+        <img src="assets/images/npc-head.png" width="220">
+    </div>
+
+    <div id="reward-hand">
+        <svg width="450" height="650" viewBox="0 0 450 650" fill="none">
+            <path d="M400 650C400 650 430 450 340 350C260 250 180 300 130 250" stroke="#5D4037" stroke-width="110" stroke-linecap="round"/>
+            <circle cx="130" cy="250" r="70" fill="#5D4037" />
+            <g id="golden-banana" onclick="Game.openScratchCard()">
+                <path d="M90 230 Q 130 160 210 230" stroke="gold" stroke-width="45" fill="none" stroke-linecap="round"/>
+                <path d="M95 230 Q 130 190 200 230" stroke="#fff5b1" stroke-width="12" fill="none" opacity="0.8"/>
+            </g>
+        </svg>
+    </div>
+
+    <div id="scratch-container">
+        <div class="ticket-underlay">
+            <h1 style="color: #b8860b; font-size: 3.2rem; margin: 0;">GOLDEN TICKET</h1>
+            <p style="font-weight: 900; font-size: 1.2rem; color: #333;">AKSHARA: VERIFIED HUMAN</p>
+        </div>
+        <canvas id="scratch-canvas" width="500" height="300"></canvas>
+    </div>
+
+    <button id="next-task-btn" onclick="Game.resetAndGo()">PROCEED (TASK 02) ⏩</button>
+
+    <script>
+        const Game = {
+            state: { iq: 50, tiles: [1, 2, 3, 4, 5, 6, 7, 8, null], timeLeft: 180, isSolved: false, isRunning: false, scratchAmount: 0 },
+
+            init() { this.handleInitialGreeting(); this.setupSecurity(); },
+
+            setupSecurity() {
+                document.addEventListener("visibilitychange", () => {
+                    if (document.hidden && this.state.isRunning) {
+                        this.state.iq -= 10;
+                        localStorage.setItem('menace_iq', this.state.iq);
+                        alert("EYES ON ME AMMAMMA! Penalty -10 IQ Applied.");
+                        location.reload();
+                    }
+                });
+            },
+
+            handleInitialGreeting() {
+                this.state.iq = 48;
+                document.getElementById('modal-greeting').classList.add('modal-active');
+                this.updateDisplay();
+            },
+
+            showRules() { document.getElementById('modal-greeting').classList.remove('modal-active'); document.getElementById('modal-rules').classList.add('modal-active'); },
+
+            commenceGame() {
+                this.state.isRunning = true;
+                document.getElementById('modal-rules').classList.remove('modal-active');
+                document.getElementById('timer-box').style.display = 'block';
+                this.executeShuffle();
+                this.renderPuzzle();
+                this.initTimer();
+            },
+
+            executeShuffle() {
+                for (let i = 0; i < 150; i++) {
+                    const emptyPos = this.state.tiles.indexOf(null);
+                    const moves = this.getNeighbors(emptyPos);
+                    const pick = moves[Math.floor(Math.random() * moves.length)];
+                    [this.state.tiles[emptyPos], this.state.tiles[pick]] = [this.state.tiles[pick], this.state.tiles[emptyPos]];
+                }
+            },
+
+            getNeighbors(idx) {
+                const m = [];
+                if (idx % 3 > 0) m.push(idx - 1);
+                if (idx % 3 < 2) m.push(idx + 1);
+                if (idx > 2) m.push(idx - 3);
+                if (idx < 6) m.push(idx + 3);
+                return m;
+            },
+
+            renderPuzzle() {
+                const b = document.getElementById('puzzle-board');
+                b.innerHTML = '';
+                this.state.tiles.forEach((t, i) => {
+                    const div = document.createElement('div');
+                    div.className = t ? 'tile' : 'tile tile-empty';
+                    if (t) {
+                        div.dataset.num = t;
+                        div.style.backgroundPosition = `${((t-1)%3)*-115}px ${Math.floor((t-1)/3)*-115}px`;
+                        div.onclick = () => this.handleMove(i);
+                    }
+                    b.appendChild(div);
+                });
+            },
+
+            handleMove(idx) {
+                if (this.state.isSolved) return;
+                const empty = this.state.tiles.indexOf(null);
+                if (this.getNeighbors(idx).includes(empty)) {
+                    [this.state.tiles[empty], this.state.tiles[idx]] = [this.state.tiles[idx], this.state.tiles[empty]];
+                    this.state.iq += 2;
+                    this.updateDisplay();
+                    this.renderPuzzle();
+                    this.checkVictory();
+                } else {
+                    this.state.iq -= 4;
+                    this.updateDisplay();
+                    this.triggerMockery();
+                }
+            },
+
+            triggerMockery() {
+                const npc = document.getElementById('npc-wrong');
+                npc.classList.add('npc-active', 'npc-laughing');
+                setTimeout(() => npc.classList.remove('npc-active', 'npc-laughing'), 1000);
+            },
+
+            triggerHint() {
+                if(this.state.isSolved) return;
+                this.state.iq -= 20;
+                this.updateDisplay();
+                document.getElementById('puzzle-board').style.opacity = '0.4';
+                setTimeout(() => document.getElementById('puzzle-board').style.opacity = '1', 1500);
+            },
+
+            checkVictory() {
+                const win = [1, 2, 3, 4, 5, 6, 7, 8, null];
+                if (this.state.tiles.every((v, i) => v === win[i])) {
+                    this.state.isSolved = true;
+                    this.initVictoryReveal();
+                }
+            },
+
+            initVictoryReveal() {
+                const board = document.getElementById('puzzle-board');
+                board.style.gap = '0';
+                // Show Next Button Immediately
+                document.getElementById('next-task-btn').classList.add('visible');
+                document.getElementById('modal-victory').classList.add('modal-active');
+            },
+
+            spawnReward() {
+                document.getElementById('modal-victory').classList.remove('modal-active');
+                document.getElementById('reward-hand').classList.add('active');
+            },
+
+            openScratchCard() {
+                document.getElementById('scratch-container').style.transform = 'translate(-50%, -50%) scale(1)';
+                this.initScratch();
+            },
+
+            initScratch() {
+                const canvas = document.getElementById('scratch-canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#D4AF37'; ctx.fillRect(0, 0, 500, 300);
+                ctx.globalCompositeOperation = 'destination-out';
+                const scratch = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - rect.left;
+                    const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - rect.top;
+                    ctx.beginPath(); ctx.arc(x, y, 45, 0, Math.PI * 2); ctx.fill();
+                };
+                canvas.addEventListener('mousemove', scratch);
+                canvas.addEventListener('touchmove', scratch);
+            },
+
+            resetAndGo() {
+                // Direct Navigation to Task 2
+                localStorage.setItem('menace_iq', 150);
+                window.location.href = 'task2.html';
+            },
+
+            updateDisplay() { document.getElementById('iq-box').innerText = `IQ: ${this.state.iq}`; if (this.state.iq < 0) this.triggerPenaltyFX(); },
+
+            triggerPenaltyFX() {
+                const el = document.createElement('div');
+                el.className = 'huge-penalty'; el.innerText = "-4";
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 1300);
+            },
+
+            initTimer() {
+                const clock = setInterval(() => {
+                    this.state.timeLeft--;
+                    let m = Math.floor(this.state.timeLeft / 60), s = this.state.timeLeft % 60;
+                    document.getElementById('timer-box').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    if (this.state.timeLeft <= 0) { clearInterval(clock); location.reload(); }
+                    if (this.state.isSolved) clearInterval(clock);
+                }, 1000);
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

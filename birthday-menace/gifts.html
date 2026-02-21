@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Treasure of Akshara | Birthday Finale</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Bungee+Inline&family=Quicksand:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --p-dark: #D81B60; --p-mid: #FF4081; --p-light: #FF80AB; 
+            --gold: #FFD700; --wood: #8B4513;
+        }
+
+        * { user-select: none; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; }
+
+        /* --- 💖 1. SHADES OF PINK BACKGROUND --- */
+        .bg-pink {
+            position: fixed; inset: 0; z-index: -10;
+            background: linear-gradient(135deg, #fce4ec, #f8bbd0, #f48fb1, #f06292, #ec407a);
+            background-size: 400% 400%;
+            animation: gradientMove 10s ease infinite;
+        }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* --- 📦 2. DIALOGUE SYSTEM (BOTTOM) --- */
+        #ui-layer { position: fixed; bottom: 40px; width: 100%; display: flex; justify-content: center; z-index: 5000; }
+        .ui-box {
+            background: white; border: 8px solid var(--p-dark); padding: 25px;
+            border-radius: 35px; width: 90%; max-width: 700px; display: flex; align-items: center; gap: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        }
+        .npc-thumb { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--p-dark); object-fit: cover; background: #eee; }
+        #ui-text { font-weight: 800; font-size: 1.3rem; color: var(--p-dark); flex: 1; }
+
+        /* --- 🗝️ 3. KEY HUD --- */
+        #hud { position: fixed; top: 20px; width: 100%; display: flex; justify-content: center; z-index: 2000; }
+        .key-counter { background: white; border: 5px solid var(--gold); padding: 10px 30px; border-radius: 50px; font-weight: 900; font-size: 1.5rem; color: #b8860b; }
+
+        /* --- 🎁 4. TREASURE STAGE --- */
+        #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 100; }
+        #chest-container { cursor: pointer; transition: 0.5s; text-align: center; }
+        .chest-svg { width: 350px; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.4)); }
+        
+        /* Monkey Hand */
+        #monkey-hand {
+            position: fixed; right: -300px; bottom: 100px; transition: 0.8s; z-index: 150;
+        }
+        .hand-active { right: 0 !important; }
+
+        /* --- 📜 5. LETTER & CARDS --- */
+        .modal-full { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .letter-paper { 
+            background: #fff9e6; width: 85%; max-width: 600px; padding: 50px; border-radius: 5px; 
+            box-shadow: 0 0 50px gold; font-family: 'Pacifico'; color: #3e2723; line-height: 1.5; font-size: 1.3rem;
+        }
+        .btn-main { background: var(--p-dark); color: white; padding: 15px 40px; border-radius: 50px; border: none; font-weight: 900; cursor: pointer; margin-top: 20px; display: block; width: 100%; }
+
+        /* --- 👄 6. FRIEND WISHES --- */
+        .wish-card { background: white; padding: 40px; border-radius: 40px; border: 10px solid var(--p-dark); text-align: center; width: 450px; }
+        .friend-img { width: 200px; height: 200px; border-radius: 50%; border: 8px solid var(--p-light); margin-bottom: 20px; object-fit: cover; }
+
+        /* --- 🎟️ 7. FINAL TICKET --- */
+        #ticket-result { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 600px; height: 450px; z-index: 20000; transition: 0.7s; }
+        .ticket-bg { 
+            position: absolute; inset: 0; background: white; border: 12px solid #2ecc71; border-radius: 35px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        }
+        .braces-img { width: 250px; border-radius: 15px; margin: 15px 0; border: 5px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pink"></div>
+    
+    <header id="hud">
+        <div class="key-counter" id="key-ui">🔑 Keys: 0 / 5</div>
+    </header>
+
+    <div id="stage">
+        <div id="chest-container" onclick="App.openChest()">
+            <svg class="chest-svg" id="chest-svg" viewBox="0 0 200 150">
+                <rect x="20" y="60" width="160" height="80" fill="#5d4037" rx="5"/>
+                <path id="chest-lid" d="M20 60 Q 20 10 100 10 Q 180 10 180 60 Z" fill="#3e2723"/>
+                <rect x="90" y="50" width="20" height="30" fill="gold" rx="2"/>
+                <circle cx="100" cy="65" r="5" fill="black"/>
+            </svg>
+        </div>
+    </div>
+
+    <div id="monkey-hand">
+        <svg width="250" viewBox="0 0 200 200">
+            <path d="M200 100 Q 150 100 120 80 T 50 100" stroke="#5d4037" stroke-width="40" fill="none" stroke-linecap="round"/>
+            <text x="50" y="100" fill="gold" font-weight="900" font-size="20">🔑+🎁</text>
+        </svg>
+    </div>
+
+    <div id="modal-letter" class="modal-full">
+        <div class="letter-paper">
+            <h2>Dearest Akshara,</h2>
+            <p>You’ve navigated the inverted roads, survived the firewall spams, and officially admitted to being a monkey. Your resilience is... concerning, but impressive!</p>
+            <p>Within this chest lies the ultimate treasure: the love of your friends. They have something to say...</p>
+            <button class="btn-main" onclick="App.startFriends()">READ WISHES ⏩</button>
+        </div>
+    </div>
+
+    <div id="modal-friends" class="modal-full">
+        <div class="wish-card">
+            <img id="friend-pic" src="" class="friend-img" alt="Friend">
+            <h1 id="friend-name" style="font-family: 'Bungee Inline'; color: var(--p-dark);">NAME</h1>
+            <div id="friend-msg" style="font-weight: 800; font-size: 1.2rem; margin: 20px 0;">MESSAGE</div>
+            <button class="btn-main" onclick="App.nextFriend()">NEXT FRIEND ➡</button>
+        </div>
+    </div>
+
+    <div id="modal-gift-choice" class="modal-full">
+        <div class="wish-card" style="width: 600px;">
+            <h1 style="font-family: 'Pacifico';">Pick Your Reward</h1>
+            <button class="btn-main" style="background:#eee; color:#333; margin: 10px 0;" onclick="App.sendTelegram('BOOK')">1. BUY ANY BOOK OF YOUR CHOICE</button>
+            <button class="btn-main" style="background:#eee; color:#333; margin: 10px 0;" onclick="App.sendTelegram('STUFF TOY')">2. BUY YOU A STUFF TOY</button>
+            <button class="btn-main" style="background:#eee; color:#333; margin: 10px 0;" onclick="App.sendTelegram('ORNAMENT')">3. BUY YOU ANY ORNAMENT</button>
+        </div>
+    </div>
+
+    <div id="ticket-result">
+        <div class="ticket-bg">
+            <h1 style="color:#2ecc71; margin:0;">GIFT ORDERED!</h1>
+            <p style="font-weight: 900; color: #555;">Processing your choice...</p>
+            <img src="assets/images/braces.png" class="braces-img" alt="TEETH BRACES">
+            <h2 style="background:yellow; padding:10px; font-family:'Bungee Inline';">NEW TEETH BRACES ACQUIRED!</h2>
+            <p style="font-size:0.8rem;">Note: This gift is non-refundable, you monkey!</p>
+        </div>
+    </div>
+
+    <footer id="ui-layer">
+        <div class="ui-box">
+            <img src="assets/images/npc-head.png" class="npc-thumb" alt="Monkey">
+            <div id="ui-text">You need 5 keys to open this treasure!</div>
+        </div>
+    </footer>
+
+    <script>
+        const App = {
+            state: {
+                keys: 0,
+                fIdx: 0,
+                friends: [
+                    { name: "CHARANA", img: "charana.png", msg: "Happy Birthday Akshara! Stop being a monkey for at least today!" },
+                    { name: "MANOHAR", img: "manohar.png", msg: "Wishing you a year full of bananas and joy! HBD!" },
+                    { name: "SAIKIRAN", img: "saikiran.png", msg: "May your IQ actually reach 150 this year. Happy Birthday!" },
+                    { name: "TULASI", img: "tulasi.png", msg: "To the cutest monkey in the world, have a blast!" },
+                    { name: "LASYA", img: "lasya.png", msg: "Happy Birthday Akshara! You survived the Menace!" },
+                    { name: "NAVYA", img: "navya.png", msg: "Have an amazing day! Don't let the monkey catch you." },
+                    { name: "SHAILANI", img: "shailani.png", msg: "HBD! Wishing you success and fewer glitches in life!" },
+                    { name: "SANDYA", img: "sandya.png", msg: "Stay crazy, stay monkey. Happy Birthday!" },
+                    { name: "NITISH", img: "nitish.png", msg: "You win! Now go eat some cake. Happy Birthday!" }
+                ]
+            },
+
+            init() {
+                // Get keys from local storage (default to 3 if missing)
+                this.state.keys = parseInt(localStorage.getItem('menace_keys')) || 3;
+                this.updateUI();
+
+                if(this.state.keys < 5) {
+                    setTimeout(() => this.showMonkeyHand(), 2000);
+                }
+            },
+
+            updateUI() {
+                document.getElementById('key-ui').innerText = `🔑 Keys: ${this.state.keys} / 5`;
+            },
+
+            showMonkeyHand() {
+                document.getElementById('ui-text').innerText = "Monkey feels bad for you... Here, take these!";
+                document.getElementById('monkey-hand').classList.add('hand-active');
+                
+                setTimeout(() => {
+                    this.state.keys = 5;
+                    this.updateUI();
+                    document.getElementById('monkey-hand').classList.remove('hand-active');
+                    document.getElementById('ui-text').innerText = "Now open the chest, Akshara!";
+                }, 2500);
+            },
+
+            openChest() {
+                if(this.state.keys < 5) return;
+                
+                // Animate Lid
+                document.getElementById('chest-lid').style.transform = "translateY(-40px) rotate(-20deg)";
+                document.getElementById('ui-text').innerText = "TREASURE UNLOCKED!";
+                
+                setTimeout(() => {
+                    document.getElementById('modal-letter').style.display = 'flex';
+                }, 1000);
+            },
+
+            startFriends() {
+                document.getElementById('modal-letter').style.display = 'none';
+                document.getElementById('modal-friends').style.display = 'flex';
+                this.nextFriend();
+            },
+
+            nextFriend() {
+                if(this.state.fIdx < this.state.friends.length) {
+                    const f = this.state.friends[this.state.fIdx];
+                    document.getElementById('friend-pic').src = `assets/images/${f.img}`;
+                    document.getElementById('friend-name').innerText = f.name;
+                    document.getElementById('friend-msg').innerText = f.msg;
+                    this.state.fIdx++;
+                } else {
+                    document.getElementById('modal-friends').style.display = 'none';
+                    document.getElementById('modal-gift-choice').style.display = 'flex';
+                }
+            },
+
+            async sendTelegram(choice) {
+                // Telegram Logic [Add your Token/ID here]
+                const token = "YOUR_BOT_TOKEN";
+                const chatId = "YOUR_CHAT_ID";
+                const text = `🎁 Akshara picked: ${choice}`;
+                
+                try {
+                    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({chat_id: chatId, text: text})
+                    });
+                } catch(e) { console.error(e); }
+
+                // Reveal Final Braces Twist
+                document.getElementById('modal-gift-choice').style.display = 'none';
+                document.getElementById('ticket-result').style.transform = "translate(-50%, -50%) scale(1)";
+            }
+        };
+
+        window.onload = () => App.init();
+    </script>
+</body>
+</html>

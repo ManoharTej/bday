@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task 02: Who is monkey? | Birthday Menace Engine v80.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800&family=Pacifico&family=Bungee+Inline&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <style>
+        /**
+         * 🎨 BIRTHDAY MENACE - TASK 02 MASTER RE-ENGINEERED
+         * architecture: Fixed Pointer-Events + Sequential Gauntlet
+         * components: 4-Button Chain, Banana-to-Key Reveal, Scratch Physics
+         */
+
+        :root {
+            --p1: #FFD1DC; --p2: #FFB7B2; --p3: #FF85A1; --p4: #D81B60;
+            --glass: rgba(255, 255, 255, 0.96);
+            --gold: #FFD700;
+            --ribbon-shadow: #85103a;
+        }
+
+        /* --- 🌈 1. STATIONARY DIAGONAL SHADES --- */
+        body, html {
+            margin: 0; padding: 0; height: 100vh; width: 100vw;
+            overflow: hidden; font-family: 'Quicksand', sans-serif;
+            background-color: var(--p4);
+        }
+
+        .menace-bg-stripes {
+            position: fixed; inset: 0; z-index: -10;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--p1) 0, var(--p1) 120px,
+                var(--p2) 120px, var(--p2) 240px,
+                var(--p3) 240px, var(--p3) 360px,
+                var(--p4) 360px, var(--p4) 480px
+            );
+        }
+
+        .glow-sweep {
+            position: fixed; inset: 0; z-index: -9; pointer-events: none;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            background-size: 300% 300%; animation: sweep 7s linear infinite;
+        }
+        @keyframes sweep { 0% { background-position: 150% 150%; } 100% { background-position: -150% -150%; } }
+
+        /* --- 🏷️ 2. HUD & LABELS --- */
+        .task-label { position: fixed; top: 30px; left: 45px; color: white; font-weight: 800; font-size: 1.6rem; text-shadow: 2px 2px 5px rgba(0,0,0,0.4); z-index: 1000; }
+        
+        #game-hud { position: fixed; top: 20px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
+        .hud-ribbon {
+            position: relative; background: var(--p4); color: white;
+            padding: 12px 85px; font-family: 'Pacifico'; font-size: 1.7rem; 
+            border-radius: 4px; box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+            cursor: pointer; pointer-events: auto;
+        }
+        .hud-ribbon::before { content: ''; position: absolute; left: -55px; top: 10px; border: 28px solid var(--ribbon-shadow); border-right-color: var(--ribbon-shadow); border-left-color: transparent; z-index: -1; }
+        .hud-ribbon::after { content: ''; position: absolute; right: -55px; top: 10px; border: 28px solid var(--ribbon-shadow); border-left-color: var(--ribbon-shadow); border-right-color: transparent; z-index: -1; }
+
+        #iq-box { position: fixed; top: 100px; right: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid var(--p4); color: var(--p4); font-weight: 800; font-size: 1.6rem; box-shadow: 0 10px 0px var(--p4); z-index: 1000; }
+        #timer-box { position: fixed; top: 100px; left: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid #333; color: #333; font-weight: 800; font-size: 1.6rem; z-index: 1000; }
+
+        /* --- 🧩 3. BUTTON GAUNTLET AREA --- */
+        #gauntlet-container {
+            position: fixed; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 500;
+            pointer-events: none; 
+        }
+
+        .button-pattern-wrapper {
+            display: flex; gap: 30px; pointer-events: auto;
+        }
+
+        .gauntlet-btn {
+            width: 140px; height: 140px; background: white; border: 10px solid var(--p4);
+            border-radius: 40px; display: flex; align-items: center; justify-content: center;
+            font-family: 'Bungee Inline'; font-size: 4rem; color: var(--p4);
+            cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 12px 0px #85103a;
+        }
+        .gauntlet-btn:active { transform: translateY(8px); box-shadow: 0 4px 0px #85103a; }
+        
+        .gauntlet-btn.completed {
+            background: #4CAF50 !important; color: white !important;
+            border-color: #2e7d32 !important; box-shadow: 0 12px 0px #1b5e20 !important;
+        }
+
+        /* --- 🗣️ 4. NPC MOUTH DIALOGUE --- */
+        .npc-mouth-system {
+            position: fixed; bottom: -550px; z-index: 2000;
+            display: flex; flex-direction: column; align-items: center;
+            transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .npc-active { bottom: 0 !important; }
+        
+        .mouth-bubble {
+            background: white; padding: 15px 25px; border-radius: 20px;
+            border: 4px solid var(--p4); font-weight: 800; color: var(--p4);
+            margin-bottom: 5px; text-align: center; max-width: 220px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); font-size: 1rem;
+        }
+
+        /* --- 🍌 5. REWARD CHAIN --- */
+        #reward-hand-system { position: fixed; right: -650px; bottom: 0; transition: 1.5s; z-index: 6000; }
+        #reward-hand-system.active { right: 0; }
+        
+        #shining-banana { filter: drop-shadow(0 0 25px gold); cursor: pointer; animation: bananaGlow 1.5s infinite alternate; }
+        @keyframes bananaGlow { from { transform: scale(1); } to { transform: scale(1.1) rotate(5deg); } }
+        
+        #golden-key-item { filter: drop-shadow(0 0 35px gold); cursor: pointer; display: none; animation: keyGlow 1.5s infinite alternate; }
+        @keyframes keyGlow { from { filter: drop-shadow(0 0 15px gold); } to { filter: drop-shadow(0 0 50px gold); transform: scale(1.1); } }
+
+        /* --- 🎟️ 6. SCRATCH CARD TICKET --- */
+        #scratch-card-overlay {
+            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 550px; height: 320px; z-index: 9000; transition: 0.7s;
+        }
+        #scratch-surface { position: absolute; top: 0; left: 0; border-radius: 25px; cursor: crosshair; }
+        .ticket-underlay {
+            width: 100%; height: 100%; background: linear-gradient(135deg, #FFD700 0%, #FFFACD 50%, #FFD700 100%);
+            border: 12px solid #b8860b; border-radius: 25px; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'Pacifico'; text-align: center; box-shadow: 0 0 150px rgba(0,0,0,0.6);
+        }
+
+        /* Navigation button below the ticket */
+        #next-task-btn {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) scale(0);
+            z-index: 9500; background: #4CAF50; color: white; padding: 22px 85px;
+            border-radius: 120px; font-weight: 800; font-size: 1.7rem; border: 8px solid white;
+            cursor: pointer; transition: 0.5s; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        }
+        #next-task-btn.reveal { transform: translateX(-50%) scale(1); }
+
+        /* --- 🏹 7. MODALS --- */
+        .menace-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; border: 12px solid var(--p4); padding: 50px; border-radius: 70px; z-index: 10000; text-align: center; width: 480px; box-shadow: 0 0 200px rgba(0,0,0,0.5); transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-active { transform: translate(-50%, -50%) scale(1); }
+        .choice-btn { background: var(--p3); color: white; padding: 18px 60px; border-radius: 80px; font-weight: 800; cursor: pointer; border: 6px solid white; font-size: 1.3rem; }
+        
+        #hint-btn { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #333; color: white; border: 5px solid white; padding: 15px 45px; border-radius: 50px; font-weight: 800; cursor: pointer; z-index: 1000; }
+        .huge-penalty { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%); font-family: 'Bungee Inline'; font-size: 12rem; color: red; z-index: 10000; pointer-events: none; animation: popImpact 1.3s forwards; text-shadow: 12px 12px 0px white; }
+        @keyframes popImpact { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 40% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; } 100% { transform: translate(-50%, -95%) scale(1); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="menace-bg-stripes"></div>
+    <div class="glow-sweep"></div>
+    <div class="task-label">Who is monkey?</div>
+
+    <header id="game-hud">
+        <div id="timer-box">03:00</div>
+        <div class="hud-ribbon" ondblclick="Game.triggerDevSkip()">Task 02/10</div>
+        <div id="iq-box">IQ: --</div>
+    </header>
+
+    <div id="modal-intro" class="menace-modal">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 3rem;">Stage 02!</h2>
+        <p style="font-weight:700; font-size:1.3rem;">IQ reset to 150. Solve the click pattern to reveal Key #1!</p>
+        <button class="choice-btn" onclick="Game.showRules()">OK</button>
+    </div>
+
+    <div id="modal-rules" class="menace-modal">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.5rem;">Rules</h2>
+        <div style="text-align:left; font-weight:700; color:#444; background:#f5f5f5; padding:30px; border-radius:40px; margin-bottom: 25px;">
+            <p>🔄 Click Pattern: press buttons in such way that all should turn green , eacg button have a diffrent pattern</p>
+            <p>❌ Wrong Sequence: -4 IQ</p>
+            <p>⏱️ Time: 3 Minutes | 💡 Hint: -20 IQ</p>
+        </div>
+        <button class="choice-btn" style="background:#4CAF50;" onclick="Game.commenceTask()">START</button>
+    </div>
+
+    <div id="modal-victory" class="menace-modal">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.8rem;">Victory!</h2>
+        <p style="font-weight:700; font-size:1.4rem;" id="victory-text">Wow, I didn't knew u could, take reward!</p>
+        <button class="choice-btn" style="background:var(--gold); color:#333;" onclick="Game.spawnHand()">CLAIM</button>
+    </div>
+
+    <main id="gauntlet-container">
+        <div class="button-pattern-wrapper">
+            <div class="gauntlet-btn" onclick="Game.handleBtnPress(0)">A</div>
+            <div class="gauntlet-btn" onclick="Game.handleBtnPress(1)">B</div>
+            <div class="gauntlet-btn" onclick="Game.handleBtnPress(2)">C</div>
+            <div class="gauntlet-btn" onclick="Game.handleBtnPress(3)">D</div>
+        </div>
+    </main>
+
+    <button id="hint-btn" onclick="Game.useHint()">SHOW HINT (-20 IQ)</button>
+
+    <div id="npc-mouth-overlay" class="npc-mouth-system" style="left:45px;">
+        <div class="mouth-bubble" id="mock-text-bubble">i didnt new u were this noob</div>
+        <img src="assets/images/npc-head.png" width="220">
+    </div>
+
+    <div id="reward-hand-system">
+        <svg width="450" height="650" viewBox="0 0 450 650" fill="none">
+            <path d="M400 650C400 650 430 450 340 350C260 250 180 300 130 250" stroke="#5D4037" stroke-width="110" stroke-linecap="round"/>
+            <circle cx="130" cy="250" r="70" fill="#5D4037" />
+            
+            <g id="shining-banana" onclick="Game.revealKeyChain()">
+                <path d="M90 230 Q 130 160 210 230" stroke="gold" stroke-width="45" fill="none" stroke-linecap="round"/>
+                <path d="M95 230 Q 130 190 200 230" stroke="#fff5b1" stroke-width="12" fill="none" opacity="0.8"/>
+            </g>
+
+            <g id="golden-key-item" onclick="Game.openScratchCard()">
+                <rect x="80" y="220" width="100" height="25" rx="12" fill="gold" />
+                <circle cx="180" cy="232" r="35" stroke="gold" stroke-width="18" fill="none" />
+                <rect x="90" y="245" width="15" height="30" fill="gold" />
+                <rect x="120" y="245" width="15" height="20" fill="gold" />
+            </g>
+        </svg>
+    </div>
+
+    <div id="scratch-card-overlay">
+        <div class="ticket-underlay">
+            <h1 style="color: #b8860b; font-size: 3.5rem; margin: 0;">GOLDEN TICKET</h1>
+            <p style="font-weight: 900; font-size: 1.2rem; color: #333;">AKSHARA: KEY #1 COLLECTED</p>
+        </div>
+        <canvas id="scratch-surface" width="550" height="320"></canvas>
+    </div>
+
+    <button id="next-task-btn" onclick="Game.resetAndProceed()">PROCEED TO NEXT TASK (IQ 150)</button>
+
+    <script>
+        /**
+         * BIRTHDAY MENACE ENGINE v80.0 - RE-ENGINEERED TASK 02
+         * logic: Sequential Pattern Verification + Randomized Mockery
+         */
+        const Game = {
+            state: {
+                iq: 150, // REQUIREMENT: Reset IQ to 150
+                timeLeft: 180,
+                targets: [6, 7, 8, 9], // Required Clicks
+                counts: [0, 0, 0, 0],
+                currentIndex: 0,
+                isRunning: false,
+                isSolved: false,
+                scratchAmount: 0,
+                // NEW: Randomized Mocking Dialogues
+                insults: [
+                    "i didnt new u were this noob",
+                    "brain lag is real, Ammamma!",
+                    "dumb move... try again",
+                    "monkey does it better than u",
+                    "ur brain.exe has stopped",
+                    "stop wasting my time, noob",
+                    "is counting too hard for u?",
+                    "wow, actual failure detected",
+                    "IQ is dropping... watch out!",
+                    "embarrassing performance!",
+                    "even a goldfish has better focus",
+                    "such a noob move!",
+                    "r u even awake right now?",
+                    "u r embarrassing the monkeys",
+                    "just give up, human"
+                ]
+            },
+
+            init() {
+                localStorage.setItem('menace_iq', 150);
+                this.updateIQDisplay();
+                document.getElementById('modal-intro').classList.add('modal-active');
+                this.setupTabSecurity();
+            },
+
+            setupTabSecurity() {
+                document.addEventListener("visibilitychange", () => {
+                    if (document.hidden && this.state.isRunning) {
+                        this.state.iq -= 20;
+                        localStorage.setItem('menace_iq', this.state.iq);
+                        alert("TAB SWITCH DETECTED! Penalty -20 IQ Applied.");
+                        location.reload();
+                    }
+                });
+            },
+
+            showRules() {
+                document.getElementById('modal-intro').classList.remove('modal-active');
+                document.getElementById('modal-rules').classList.add('modal-active');
+            },
+
+            commenceTask() {
+                this.state.isRunning = true;
+                document.getElementById('modal-rules').classList.remove('modal-active');
+                document.getElementById('timer-box').style.display = 'block';
+                this.startTimerEngine();
+            },
+
+            handleBtnPress(idx) {
+                if(!this.state.isRunning || this.state.isSolved) return;
+
+                // WRONG SEQUENCE TRAP
+                if(idx !== this.state.currentIndex) {
+                    this.state.iq -= 4; // Penalty -4 IQ
+                    this.updateIQDisplay();
+                    this.triggerMockery(); // Randomized insult
+                    return;
+                }
+
+                // Correct Button Increment
+                this.state.counts[idx]++;
+                
+                // Visual bounce
+                const btn = document.querySelectorAll('.gauntlet-btn')[idx];
+                btn.style.transform = 'scale(0.9)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 100);
+
+                // Completion Check
+                if(this.state.counts[idx] === this.state.targets[idx]) {
+                    btn.classList.add('completed'); 
+                    this.state.currentIndex++;
+                    
+                    // Final Victory Check
+                    if(this.state.currentIndex === 4) {
+                        this.state.isSolved = true;
+                        setTimeout(() => {
+                            document.getElementById('modal-victory').classList.add('modal-active');
+                        }, 800);
+                    }
+                }
+            },
+
+            triggerMockery() {
+                // Pick a NEW random dialogue every fail
+                const npc = document.getElementById('npc-mouth-overlay');
+                const bubble = document.getElementById('mock-text-bubble');
+                const randomMsg = this.state.insults[Math.floor(Math.random() * this.state.insults.length)];
+                
+                bubble.innerText = randomMsg;
+                npc.classList.add('npc-active');
+                
+                // Vanish after exactly 2 seconds
+                setTimeout(() => npc.classList.remove('npc-active'), 2000);
+            },
+
+            useHint() {
+                this.state.iq -= 20; // HINT COST -20
+                this.updateIQDisplay();
+                alert("Pattern Hint: A(6), B(7), C(8), D(9)");
+            },
+
+            spawnHand() {
+                document.getElementById('modal-victory').classList.remove('modal-active');
+                document.getElementById('reward-hand-system').classList.add('active');
+            },
+
+            revealKeyChain() {
+                // Command: Click Banana to Reveal Golden Key
+                document.getElementById('shining-banana').style.display = 'none';
+                document.getElementById('golden-key-item').style.display = 'block';
+            },
+
+            openScratchCard() {
+                document.getElementById('scratch-card-overlay').style.transform = 'translate(-50%, -50%) scale(1)';
+                this.initScratch();
+            },
+
+            initScratch() {
+                const c = document.getElementById('scratch-surface');
+                const ctx = c.getContext('2d');
+                ctx.fillStyle = '#D4AF37'; // Metallic gold scratch
+                ctx.fillRect(0, 0, 550, 320);
+                ctx.globalCompositeOperation = 'destination-out';
+
+                const scratchMove = (e) => {
+                    const rect = c.getBoundingClientRect();
+                    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                    ctx.beginPath(); ctx.arc(x, y, 45, 0, Math.PI * 2); ctx.fill();
+                    this.state.scratchAmount++;
+                    
+                    // Reveal external button after scratch
+                    if(this.state.scratchAmount > 60) {
+                        document.getElementById('next-task-btn').classList.add('reveal');
+                    }
+                };
+                c.addEventListener('mousemove', scratchMove);
+                c.addEventListener('touchmove', scratchMove);
+            },
+
+            resetAndProceed() {
+                // Reset to 150 for Task 03
+                localStorage.setItem('menace_iq', 150);
+                window.location.href = 'task3.html';
+            },
+
+            updateIQDisplay() {
+                document.getElementById('iq-box').innerText = `IQ: ${this.state.iq}`;
+                if(this.state.iq < 150) this.spawnHugePenalty();
+            },
+
+            spawnHugePenalty() {
+                const p = document.createElement('div');
+                p.className = 'huge-penalty'; p.innerText = "-4";
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 1200);
+            },
+
+            startTimerEngine() {
+                const el = document.getElementById('timer-box');
+                const clock = setInterval(() => {
+                    this.state.timeLeft--;
+                    let m = Math.floor(this.state.timeLeft/60);
+                    let s = this.state.timeLeft%60;
+                    el.innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    if(this.state.timeLeft <= 0) { clearInterval(clock); location.reload(); }
+                    if(this.state.isSolved) clearInterval(clock);
+                }, 1000);
+            },
+
+            triggerDevSkip() {
+                const target = prompt("ENTER BYPASS TASK #?");
+                if(target) window.location.href = `task${target}.html`;
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task 06: Coconut Gamble | Birthday Menace v175.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800&family=Pacifico&family=Bungee+Inline&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sky: #87CEEB; --sand: #F4A460; --sand-shadow: #D2691E;
+            --p4: #D81B60; --gold: #FFD700; --ribbon-shadow: #85103a;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; }
+
+        /* --- 🏖️ 1. BEACH BACKGROUND & SCENERY --- */
+        .bg-beach-gradient {
+            position: fixed; inset: 0; z-index: -20;
+            background: linear-gradient(to bottom, var(--sky) 0%, var(--sky) 55%, var(--sand) 55%, var(--sand) 100%);
+        }
+        
+        #scenery-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; pointer-events: none; }
+        .palm-tree { position: absolute; bottom: 45%; filter: drop-shadow(5px 5px 0px rgba(0,0,0,0.1)); }
+
+        .glow-sweep { 
+            position: fixed; top: 55%; left:0; right:0; bottom:0; z-index: -15; pointer-events: none; 
+            background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.4) 0%, transparent 60%); opacity: 0.5;
+            animation: tide 6s infinite alternate ease-in-out;
+        }
+        @keyframes tide { 0% { transform: translateY(0) scaleY(1); } 100% { transform: translateY(30px) scaleY(1.1); } }
+
+        /* --- 🏷️ 2. HUD --- */
+        .task-label { position: fixed; top: 30px; left: 45px; color: white; font-weight: 800; font-size: 1.6rem; text-shadow: 2px 2px 5px rgba(0,0,0,0.4); z-index: 1000; }
+        #game-hud { position: fixed; top: 20px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
+        .hud-ribbon { position: relative; background: var(--p4); color: white; padding: 12px 85px; font-family: 'Pacifico'; font-size: 1.7rem; border-radius: 4px; box-shadow: 0 12px 35px rgba(0,0,0,0.35); cursor: pointer; }
+        #iq-box { position: fixed; top: 100px; right: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid var(--p4); color: var(--p4); font-weight: 800; font-size: 1.6rem; box-shadow: 0 10px 0px var(--p4); z-index: 1000; }
+
+        #main-key-hud {
+            position: fixed; top: 100px; left: 50%; transform: translateX(-50%);
+            background: white; border: 10px solid #b8860b; padding: 10px 60px;
+            border-radius: 100px; color: #b8860b; font-family: 'Bungee Inline';
+            font-size: 2.5rem; box-shadow: 0 15px 40px rgba(0,0,0,0.3); z-index: 1100;
+        }
+
+        /* --- 🧩 3. GAME AREA --- */
+        #active-task-layer { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index: 60; }
+        .coconuts-container { position: relative; width: 800px; height: 350px; display: flex; justify-content: space-around; align-items: flex-end; }
+        
+        .coconut-shell {
+            position: absolute; width: 160px; height: 140px; bottom: 50px;
+            cursor: pointer; transition: left 0.3s, bottom 0.5s; z-index: 20;
+        }
+
+        .key-asset {
+            position: absolute; width: 80px; height: 80px; bottom: 150px;
+            transition: bottom 0.8s, left 0.3s; z-index: 5; filter: drop-shadow(0 0 15px gold);
+        }
+
+        /* --- 🗣️ 4. NPC MOUTH --- */
+        .npc-mouth-system { position: fixed; bottom: -550px; z-index: 2000; display: flex; flex-direction: column; align-items: center; transition: 0.6s; }
+        .npc-active { bottom: 0 !important; }
+        .mouth-bubble { background: white; padding: 20px 30px; border-radius: 25px; border: 5px solid var(--p4); font-weight: 800; color: var(--p4); margin-bottom: 5px; text-align: center; max-width: 350px; font-size: 1.1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+        /* --- 😱 GLITCH EFFECTS --- */
+        .glitch-blur { filter: blur(10px) invert(0.1); }
+
+        /* --- 🎟️ 5. REWARD (TICKET & NEXT BUTTON) --- */
+        #scratch-container { 
+            position: fixed; top: 45%; left: 50%; 
+            transform: translate(-50%, -50%) scale(0); 
+            width: 550px; height: 320px; 
+            z-index: 9000; transition: 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        #scratch-surface { position: absolute; top: 0; left: 0; border-radius: 25px; cursor: crosshair; z-index: 2; }
+        .ticket-underlay { 
+            position: absolute; inset: 0; background: linear-gradient(135deg, #FFD700, #FFFACD, #FFD700); 
+            border: 12px solid #b8860b; border-radius: 25px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            font-family: 'Pacifico'; text-align: center; z-index: 1;
+        }
+        
+        #next-task-btn { 
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) scale(0); 
+            z-index: 9500; background: #4CAF50; color: white; padding: 22px 80px; 
+            border-radius: 100px; font-weight: 800; font-size: 1.6rem; border: 8px solid white; 
+            cursor: pointer; transition: 0.5s;
+        }
+        #next-task-btn.reveal { transform: translateX(-50%) scale(1); }
+
+        .menace-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; border: 12px solid var(--p4); padding: 50px; border-radius: 70px; z-index: 10000; text-align: center; width: 480px; transition: 0.6s; cursor: pointer; }
+        .modal-active { transform: translate(-50%, -50%) scale(1); }
+        .choice-btn { background: var(--p3); color: white; padding: 18px 60px; border-radius: 80px; font-weight: 800; cursor: pointer; border: 6px solid white; font-size: 1.3rem; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-beach-gradient" id="bg-body"></div>
+    <div id="scenery-layer">
+        <svg class="palm-tree" style="left: 2%; height: 350px;" viewBox="0 0 100 200"><path d="M50 200 Q 60 100 50 50 Q 40 100 50 200" fill="#8B4513"/><path d="M50 50 Q 10 10 0 40 Q 20 40 50 50" fill="#228B22"/><path d="M50 50 Q 90 10 100 40 Q 80 40 50 50" fill="#228B22"/><path d="M50 50 Q 30 0 50 10 Q 70 0 50 50" fill="#228B22"/></svg>
+        <svg class="palm-tree" style="right: 5%; height: 400px; transform: scaleX(-1);" viewBox="0 0 100 200"><path d="M50 200 Q 60 100 50 50 Q 40 100 50 200" fill="#8B4513"/><path d="M50 50 Q 10 10 0 40 Q 20 40 50 50" fill="#228B22"/><path d="M50 50 Q 90 10 100 40 Q 80 40 50 50" fill="#228B22"/><path d="M50 50 Q 30 0 50 10 Q 70 0 50 50" fill="#228B22"/></svg>
+    </div>
+    
+    <div class="glow-sweep"></div>
+    <header id="game-hud">
+        <div class="hud-ribbon" ondblclick="Game.devSkip()">Task 06/10</div>
+        <div id="iq-box">IQ: --</div>
+    </header>
+
+    <div id="main-key-hud"><span>🔑</span><span id="key-val">1</span></div>
+
+    <div id="modal-intro" class="menace-modal" onclick="Game.startHidingSequence()">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.5rem;">The Gamble</h2>
+        <p style="font-weight:700;">Win back your stolen keys! Watch the shuffle. (Closes in 5s)</p>
+        <button class="choice-btn">START</button>
+    </div>
+
+    <div id="modal-result" class="menace-modal">
+        <h2 id="result-title" style="font-family:'Pacifico'; color:red; font-size: 2.5rem;">LOOOOSER!</h2>
+        <p id="result-text" style="font-weight:700;">Monkey is faster than your brain. You found nothing.</p>
+        <button class="choice-btn" style="background:#4CAF50;" onclick="Game.showScratch()">CONSOLATION PRIZE</button>
+    </div>
+
+    <main id="active-task-layer">
+        <div class="coconuts-container">
+            <svg id="the-keys" class="key-asset" viewBox="0 0 100 100"><path d="M30 10 C 10 10 10 40 30 40 C 40 40 45 30 55 30 L 80 30 L 80 45 L 90 45 L 90 30 L 95 30 C 100 30 100 20 95 20 L 55 20 C 45 20 40 10 30 10 Z M 30 18 C 38 18 38 32 30 32 C 22 32 22 18 30 18 Z" fill="gold" stroke="#B8860B" stroke-width="2"/></svg>
+            <div class="coconut-shell" id="coco-0" style="left: 50px;" onclick="Game.guess(0)"><svg viewBox="0 0 160 140"><path d="M10 80 Q 80 0 150 80 L 140 120 Q 80 140 20 120 Z" fill="#5D4037" stroke="#3E2723" stroke-width="5"/></svg></div>
+            <div class="coconut-shell" id="coco-1" style="left: 320px;" onclick="Game.guess(1)"><svg viewBox="0 0 160 140"><path d="M10 80 Q 80 0 150 80 L 140 120 Q 80 140 20 120 Z" fill="#5D4037" stroke="#3E2723" stroke-width="5"/></svg></div>
+            <div class="coconut-shell" id="coco-2" style="left: 590px;" onclick="Game.guess(2)"><svg viewBox="0 0 160 140"><path d="M10 80 Q 80 0 150 80 L 140 120 Q 80 140 20 120 Z" fill="#5D4037" stroke="#3E2723" stroke-width="5"/></svg></div>
+        </div>
+    </main>
+
+    <div id="npc-mouth-overlay" class="npc-mouth-system" style="left:45px;">
+        <div class="mouth-bubble" id="mock-msg">...</div>
+        <img src="assets/images/npc-head.png" width="220">
+    </div>
+
+    <div id="scratch-container">
+        <div class="ticket-underlay" id="ticket-info">
+            <h1 style="color: #b8860b; font-size: 3rem; margin: 0;">UNLUCKY</h1>
+            <p style="font-weight: 900; font-size: 1.2rem; color: #333;">AKSHARA: KEYS STAY AT 1</p>
+        </div>
+        <canvas id="scratch-surface" width="550" height="320"></canvas>
+    </div>
+
+    <button id="next-task-btn" onclick="Game.conditionalNavigation()">PROCEED TO TASK 07</button>
+
+    <script>
+        const Game = {
+            state: {
+                iq: 150, keys: 1, winningIdx: 1, 
+                isRunning: false, introClosed: false, revealed: false,
+                positions: [50, 320, 590], currentMapping: [0, 1, 2]
+            },
+
+            init() {
+                localStorage.setItem('menace_iq', 150);
+                this.updateUI();
+                document.getElementById('modal-intro').classList.add('modal-active');
+                this.state.introTimer = setTimeout(() => { this.startHidingSequence(); }, 5000);
+            },
+
+            updateUI() {
+                document.getElementById('iq-box').innerText = `IQ: ${this.state.iq}`;
+                document.getElementById('key-val').innerText = this.state.keys;
+            },
+
+            async startHidingSequence() {
+                if(this.state.introClosed) return;
+                this.state.introClosed = true;
+                clearTimeout(this.state.introTimer);
+                document.getElementById('modal-intro').classList.remove('modal-active');
+                
+                const keyEl = document.getElementById('the-keys');
+                keyEl.style.left = (this.state.positions[this.state.winningIdx] + 45) + 'px';
+                await this.delay(500);
+                keyEl.style.bottom = '20px';
+                await this.delay(800);
+                document.querySelectorAll('.coconut-shell').forEach(c => c.style.bottom = '0');
+                await this.delay(800);
+                this.shuffle(15);
+            },
+
+            async shuffle(times) {
+                const bg = document.getElementById('bg-body');
+                for(let i=0; i<times; i++) {
+                    let idxA = Math.floor(Math.random()*3); let idxB;
+                    do { idxB = Math.floor(Math.random()*3); } while(idxA === idxB);
+                    let posA = this.state.currentMapping.indexOf(idxA);
+                    let posB = this.state.currentMapping.indexOf(idxB);
+                    [this.state.currentMapping[posA], this.state.currentMapping[posB]] = [this.state.currentMapping[posB], this.state.currentMapping[posA]];
+                    this.renderPositions();
+                    if(i === 8) bg.classList.add('glitch-blur');
+                    if(i === 10) bg.classList.remove('glitch-blur');
+                    await this.delay(200 - (i * 10));
+                }
+                this.state.isRunning = true;
+            },
+
+            renderPositions() {
+                this.state.currentMapping.forEach((cocoIdx, posIdx) => {
+                    const el = document.getElementById(`coco-${cocoIdx}`);
+                    el.style.left = this.state.positions[posIdx] + 'px';
+                    if(cocoIdx === this.state.winningIdx) document.getElementById('the-keys').style.left = (this.state.positions[posIdx] + 45) + 'px';
+                });
+            },
+
+            async guess(idx) {
+                if(!this.state.isRunning) return;
+                this.state.isRunning = false;
+
+                // --- 😈 THE RIGGED LOGIC ---
+                // If she picks correctly, teleport the key to a different coconut instantly
+                if(idx === this.state.winningIdx) {
+                    let newWinner;
+                    do { newWinner = Math.floor(Math.random()*3); } while(newWinner === idx);
+                    this.state.winningIdx = newWinner;
+                    this.renderPositions();
+                }
+
+                const coco = document.getElementById(`coco-${idx}`);
+                coco.style.bottom = '150px';
+                await this.delay(800);
+
+                // Reveal where the key "actually" was
+                document.getElementById(`coco-${this.state.winningIdx}`).style.bottom = '150px';
+
+                this.triggerMock("Hahaha! Did you blink? Too slow!");
+                document.getElementById('modal-result').classList.add('modal-active');
+            },
+
+            triggerMock(txt) {
+                const npc = document.getElementById('npc-mouth-overlay');
+                document.getElementById('mock-msg').innerText = txt;
+                npc.classList.add('npc-active');
+            },
+
+            showScratch() {
+                document.getElementById('modal-result').classList.remove('modal-active');
+                document.getElementById('scratch-container').style.transform = 'translate(-50%, -50%) scale(1)';
+                this.initScratch();
+            },
+
+            initScratch() {
+                const c = document.getElementById('scratch-surface');
+                const ctx = c.getContext('2d');
+                ctx.fillStyle = '#D4AF37'; ctx.fillRect(0,0,550,320);
+                ctx.globalCompositeOperation = 'destination-out';
+                
+                const scratch = (e) => {
+                    const rect = c.getBoundingClientRect();
+                    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                    ctx.beginPath(); ctx.arc(x, y, 45, 0, Math.PI * 2); ctx.fill();
+                    if(!this.state.revealed) {
+                        document.getElementById('next-task-btn').classList.add('reveal');
+                        this.state.revealed = true;
+                    }
+                };
+                c.addEventListener('mousemove', scratch);
+                c.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); });
+            },
+
+            conditionalNavigation() {
+                let currentIQ = this.state.iq;
+                if (currentIQ >= 150) { localStorage.setItem('menace_iq', 150); } 
+                else { localStorage.setItem('menace_iq', currentIQ - 10); alert("Slacky performance! -10 IQ deduction."); }
+                window.location.href = 'task7.html';
+            },
+
+            delay(ms) { return new Promise(res => setTimeout(res, ms)); },
+            devSkip() { const p = prompt("BYPASS?"); if(p) window.location.href = `task${p}.html`; }
+        };
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

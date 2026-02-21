@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task 09: Brainwash Quiz | Birthday Menace v900.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800&family=Pacifico&family=Bungee+Inline&family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p4: #D81B60; --gold: #FFD700; --terminal: #00ff41; --bg: #0a0a0a;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; background-color: var(--bg); color: var(--terminal); }
+
+        /* --- 🏷️ 1. HUD --- */
+        #top-bar { position: fixed; top: 0; width: 100%; height: 100px; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 5000; pointer-events: none; }
+        .hud-item { background: #111; border: 4px solid var(--terminal); padding: 12px 35px; border-radius: 15px; font-weight: 900; color: var(--terminal); font-size: 1.8rem; pointer-events: auto; font-family: 'VT323', monospace; box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+        #key-hud { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+
+        /* --- 🖥️ 2. TERMINAL AREA --- */
+        #quiz-container { 
+            position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 10;
+        }
+        
+        #scanline { width: 100%; height: 100%; position: absolute; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 20; background-size: 100% 2px, 3px 100%; pointer-events: none; }
+
+        .question-box { width: 800px; text-align: center; border: 2px solid var(--terminal); padding: 50px; border-radius: 20px; background: rgba(0, 20, 0, 0.8); position: relative; }
+        .q-text { font-family: 'VT323'; font-size: 2.8rem; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 2px; }
+
+        .btn-grid { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+        .ans-btn { 
+            padding: 20px; font-size: 1.5rem; font-weight: 800; border: 2px solid var(--terminal); 
+            background: transparent; color: var(--terminal); cursor: pointer; transition: 0.1s; 
+            text-transform: uppercase; font-family: 'Quicksand';
+        }
+        .ans-btn:hover { background: var(--terminal); color: black; }
+
+        /* --- 😱 NPC --- */
+        .npc-box { position: fixed; bottom: -220px; left: 50px; z-index: 6000; display: flex; flex-direction: column; align-items: center; transition: 0.4s; }
+        .npc-active { bottom: 0 !important; }
+        .bubble { background: #fff; border: 5px solid var(--p4); padding: 20px; border-radius: 25px; font-weight: 900; color: var(--p4); margin-bottom: 10px; text-align: center; max-width: 300px; }
+
+        /* --- 🎟️ REWARD --- */
+        #reward-screen { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 650px; height: 450px; z-index: 9000; transition: 0.7s; }
+        .ticket-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #111, #333); border: 10px solid var(--terminal); border-radius: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #next-btn { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%) scale(0); background: var(--terminal); color: black; padding: 25px 100px; border-radius: 100px; font-weight: 900; font-size: 1.8rem; border: 5px solid white; cursor: pointer; transition: 0.5s; z-index: 10000; }
+        .reveal { transform: translateX(-50%) scale(1) !important; }
+
+        /* --- ⚡ FX --- */
+        .glitch-flash { position: fixed; inset: 0; background: white; z-index: 9999; display: none; }
+        .red-tint { animation: redFlash 0.3s; }
+        @keyframes redFlash { 0%, 100% { background: #0a0a0a; } 50% { background: #420000; } }
+    </style>
+</head>
+<body>
+
+    <div id="scanline"></div>
+    <div id="flash" class="glitch-flash"></div>
+
+    <div id="top-bar">
+        <div id="key-hud" class="hud-item">🔑 KEYS: 4</div>
+        <div id="iq-display" class="hud-item">IQ: --</div>
+    </div>
+
+    <main id="quiz-container">
+        <div class="question-box">
+            <div id="q-num" style="color:var(--p4); font-weight: 900; font-size: 1.2rem; margin-bottom: 10px;">STAGE 09: TRUTH PROTOCOL</div>
+            <div class="q-text" id="main-q">INITIALIZING...</div>
+            <div class="btn-grid" id="ans-grid">
+                </div>
+        </div>
+    </main>
+
+    <div id="npc-mouth" class="npc-box">
+        <div class="bubble" id="npc-msg">...</div>
+        <img src="assets/images/npc-head.png" width="200">
+    </div>
+
+    <div id="reward-screen">
+        <div class="ticket-bg">
+            <h1 style="color: var(--terminal); font-size: 4rem; font-family: 'VT323'; margin: 0;">CERTIFIED MONKEY</h1>
+            <img src="assets/images/akshara-face.png" style="width:150px; height:150px; border-radius:50%; border:5px solid var(--terminal); margin: 20px;">
+            <p style="color: white; font-weight: 900; font-size: 1.2rem;">BRAINWASH COMPLETE. <br>FINAL KEY #5 UNLOCKED.</p>
+        </div>
+    </div>
+
+    <button id="next-btn" onclick="Game.navigate()">PROCEED TO FINAL TASK</button>
+
+    <script>
+        const Game = {
+            state: {
+                iq: 150, currentIdx: 0, 
+                solved: false, revealed: false,
+                questions: [
+                    {
+                        q: "WHAT IS YOUR SPECIES?",
+                        options: [
+                            { text: "HUMAN BEING", correct: false },
+                            { text: "STINKY MONKEY", correct: true },
+                            { text: "INTELLIGENT GIRL", correct: false }
+                        ]
+                    },
+                    {
+                        q: "WHO IS YOUR SUPREME RULER?",
+                        options: [
+                            { text: "MYSELF", correct: false },
+                            { text: "PARENTS", correct: false },
+                            { text: "THE MONKEY KING", correct: true }
+                        ]
+                    },
+                    {
+                        q: "CALCULATE: 2 + 2 =",
+                        options: [
+                            { text: "4", correct: false },
+                            { text: "BANANA", correct: true },
+                            { text: "22", correct: false }
+                        ]
+                    },
+                    {
+                        q: "DESCRIBE YOUR CURRENT BRAIN STATE:",
+                        options: [
+                            { text: "EMPTY BOTTLE", correct: true },
+                            { text: "VERY SMART", correct: false },
+                            { text: "NORMAL", correct: false }
+                        ]
+                    },
+                    {
+                        q: "WHAT IS YOUR FUTURE CAREER?",
+                        options: [
+                            { text: "SOFTWARE ENGINEER", correct: false },
+                            { text: "EATING LICE IN A TREE", correct: true },
+                            { text: "SUCCESSFUL HUMAN", correct: false }
+                        ]
+                    }
+                ]
+            },
+
+            init() {
+                let saved = parseInt(localStorage.getItem('menace_iq')) || 150;
+                this.state.iq = (saved > 150) ? 150 : saved;
+                this.updateUI();
+                this.loadQuestion();
+                this.triggerMock("Admit the truth, Akshara! You are one of us!", 4000);
+            },
+
+            updateUI() {
+                document.getElementById('iq-display').innerText = `IQ: ${this.state.iq}`;
+            },
+
+            loadQuestion() {
+                const qData = this.state.questions[this.state.currentIdx];
+                document.getElementById('main-q').innerText = qData.q;
+                const grid = document.getElementById('ans-grid');
+                grid.innerHTML = '';
+
+                qData.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'ans-btn';
+                    btn.innerText = opt.text;
+                    btn.onmouseenter = () => this.handleSwap(btn, opt.correct);
+                    btn.onclick = () => this.checkAnswer(opt.correct);
+                    grid.appendChild(btn);
+                });
+            },
+
+            // THE MENACE SWAP MECHANIC
+            handleSwap(btn, isCorrect) {
+                // Only swap if it's the "Correct" (insulting) answer and a 40% chance
+                if(isCorrect && Math.random() > 0.6) {
+                    const grid = document.getElementById('ans-grid');
+                    const btns = Array.from(grid.children);
+                    // Shuffle the buttons visually
+                    for (let i = btns.length - 1; i > 0; i--) {
+                        grid.appendChild(btns[Math.floor(Math.random() * i)]);
+                    }
+                    this.triggerMock("TOO SLOW!", 800);
+                }
+            },
+
+            checkAnswer(isCorrect) {
+                if(isCorrect) {
+                    this.state.currentIdx++;
+                    if(this.state.currentIdx >= this.state.questions.length) {
+                        this.win();
+                    } else {
+                        this.triggerMock("GOOD MONKEY...", 1000);
+                        this.loadQuestion();
+                    }
+                } else {
+                    // Penalty for picking the "Human" answer
+                    this.state.iq -= 20;
+                    this.updateUI();
+                    document.body.classList.add('red-tint');
+                    setTimeout(() => document.body.classList.remove('red-tint'), 300);
+                    this.triggerMock("STOP LYING TO YOURSELF!", 2000);
+                    
+                    if(this.state.iq <= 0) {
+                        this.rebootBrain();
+                    }
+                }
+            },
+
+            rebootBrain() {
+                const f = document.getElementById('flash');
+                f.style.display = 'block';
+                setTimeout(() => {
+                    f.style.display = 'none';
+                    this.state.iq = 50;
+                    this.state.currentIdx = 0;
+                    this.updateUI();
+                    this.loadQuestion();
+                    alert("BRAIN FAILURE. REBOOTING SYSTEM...");
+                }, 1000);
+            },
+
+            win() {
+                this.state.solved = true;
+                this.triggerMock("Finally, you know your place, Stinky Monkey.", 4000);
+                setTimeout(() => {
+                    document.getElementById('reward-screen').style.transform = 'translate(-50%, -50%) scale(1)';
+                    document.getElementById('next-btn').classList.add('reveal');
+                }, 1500);
+            },
+
+            triggerMock(txt, dur) {
+                const n = document.getElementById('npc-mouth');
+                document.getElementById('npc-msg').innerText = txt;
+                n.classList.add('npc-active');
+                setTimeout(() => n.classList.remove('npc-active'), dur);
+            },
+
+            navigate() {
+                let fIQ = this.state.iq;
+                if(fIQ > 150) fIQ = 150; // Persistent IQ ceiling
+                localStorage.setItem('menace_iq', fIQ);
+                window.location.href = 'task10.html';
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

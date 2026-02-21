@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task 04: Glitchy Catch | Birthday Menace Engine v125.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800&family=Pacifico&family=Bungee+Inline&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p1: #FFD1DC; --p2: #FFB7B2; --p3: #FF85A1; --p4: #D81B60;
+            --gold: #FFD700; --ribbon-shadow: #85103a;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; background-color: var(--p4); cursor: crosshair; }
+
+        /* --- 🌈 1. STATIONARY DIAGONAL BACKGROUND --- */
+        .bg-stripes {
+            position: fixed; inset: 0; z-index: -10;
+            background: repeating-linear-gradient(45deg, var(--p1) 0, var(--p1) 120px, var(--p2) 120px, var(--p2) 240px, var(--p3) 240px, var(--p3) 360px, var(--p4) 360px, var(--p4) 480px);
+        }
+        .glow-sweep { position: fixed; inset: 0; z-index: -9; pointer-events: none; background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); background-size: 300% 300%; animation: sweep 7s linear infinite; }
+        @keyframes sweep { 0% { background-position: 150% 150%; } 100% { background-position: -150% -150%; } }
+
+        /* --- 🏷️ 2. HUD --- */
+        .task-label { position: fixed; top: 30px; left: 45px; color: white; font-weight: 800; font-size: 1.6rem; text-shadow: 2px 2px 5px rgba(0,0,0,0.4); z-index: 1000; }
+        #game-hud { position: fixed; top: 20px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
+        .hud-ribbon { position: relative; background: var(--p4); color: white; padding: 12px 85px; font-family: 'Pacifico'; font-size: 1.7rem; border-radius: 4px; box-shadow: 0 12px 35px rgba(0,0,0,0.35); cursor: pointer; pointer-events: auto; }
+        .hud-ribbon::before { content: ''; position: absolute; left: -55px; top: 10px; border: 28px solid var(--ribbon-shadow); border-right-color: var(--ribbon-shadow); border-left-color: transparent; z-index: -1; }
+        .hud-ribbon::after { content: ''; position: absolute; right: -55px; top: 10px; border: 28px solid var(--ribbon-shadow); border-left-color: var(--ribbon-shadow); border-right-color: transparent; z-index: -1; }
+        
+        #iq-box { position: fixed; top: 100px; right: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid var(--p4); color: var(--p4); font-weight: 800; font-size: 1.6rem; box-shadow: 0 10px 0px var(--p4); z-index: 1000; }
+        #timer-box { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: white; padding: 10px 40px; border-radius: 45px; border: 6px solid #333; font-weight: 800; font-size: 1.6rem; z-index: 1000; }
+        #life-box { position: fixed; top: 100px; left: 45px; background: white; padding: 12px 35px; border-radius: 45px; border: 8px solid #333; color: red; font-size: 1.6rem; z-index: 1000; }
+
+        /* --- 🧩 3. GAME OBJECTS --- */
+        #active-task-layer { position:fixed; inset:0; z-index: 60; pointer-events: none; }
+        #target-banana { 
+            position: absolute; width: 110px; height: 110px; cursor: pointer; 
+            z-index: 500; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); 
+            pointer-events: auto; display: none; transition: none; /* Instant for 25ms logic */
+        }
+
+        /* BOMB RAIN */
+        .bomb { 
+            position: absolute; background: #222; border-radius: 50%; width: 70px; height: 70px;
+            border: 5px solid red; z-index: 400; display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; box-shadow: 0 0 20px rgba(255,0,0,0.5); pointer-events: auto;
+            animation: rainDown 4s linear forwards;
+        }
+        @keyframes rainDown { from { top: -100px; } to { top: 110vh; } }
+
+        #score-board { position: fixed; top: 180px; left: 50%; transform: translateX(-50%); background: white; padding: 10px 40px; border-radius: 30px; font-weight: 800; color: var(--p4); border: 5px solid var(--p4); z-index: 1000; }
+
+        /* --- 🕹️ 4. HELPER CONTROLS --- */
+        #helper-controls { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; gap: 30px; z-index: 1000; }
+        .helper-btn { background: white; border: 6px solid var(--p4); padding: 15px 40px; border-radius: 100px; font-weight: 900; cursor: pointer; color: var(--p4); box-shadow: 0 10px 0px var(--ribbon-shadow); transition: 0.2s; }
+        .helper-btn:active { transform: translateY(5px); box-shadow: 0 5px 0px var(--ribbon-shadow); }
+
+        /* --- 🗣️ 5. NPC DIALOGUE --- */
+        .npc-mouth-system { position: fixed; bottom: -550px; z-index: 2000; display: flex; flex-direction: column; align-items: center; transition: 0.6s; }
+        .npc-active { bottom: 0 !important; }
+        .mouth-bubble { background: white; padding: 20px 30px; border-radius: 25px; border: 5px solid var(--p4); font-weight: 800; color: var(--p4); margin-bottom: 5px; text-align: center; max-width: 350px; font-size: 1.1rem; }
+
+        /* --- 🔑 6. REWARDS --- */
+        #reward-hand { position: fixed; right: -650px; bottom: 0; transition: 1.5s; z-index: 6000; }
+        #reward-hand.active { right: 0; }
+        #golden-key { filter: drop-shadow(0 0 35px gold); cursor: pointer; animation: keyG 1.5s infinite alternate; }
+        @keyframes keyG { from { transform: scale(1); } to { transform: scale(1.1) rotate(10deg); } }
+
+        #scratch-container { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 550px; height: 320px; z-index: 9000; transition: 0.7s; }
+        #scratch-surface { position: absolute; top: 0; left: 0; border-radius: 25px; cursor: crosshair; }
+        .ticket-underlay { width: 100%; height: 100%; background: linear-gradient(135deg, #FFD700 0%, #FFFACD 50%, #FFD700 100%); border: 12px solid #b8860b; border-radius: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Pacifico'; text-align: center; }
+
+        #next-task-btn { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) scale(0); z-index: 9500; background: #4CAF50; color: white; padding: 22px 80px; border-radius: 100px; font-weight: 800; font-size: 1.6rem; border: 8px solid white; cursor: pointer; transition: 0.5s; }
+        #next-task-btn.reveal { transform: translateX(-50%) scale(1); }
+
+        /* Penalty Pop-up */
+        .huge-penalty { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%); font-family: 'Bungee Inline'; font-size: 12rem; color: red; z-index: 20000; pointer-events: none; animation: popImpact 1.4s forwards; text-shadow: 12px 12px 0px white; }
+        @keyframes popImpact { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1.4); opacity:0; } }
+    </style>
+</head>
+<body onclick="Game.missClick(event)">
+
+    <div class="bg-stripes"></div>
+    <div class="glow-sweep"></div>
+    <div class="task-label">Who is monkey?</div>
+
+    <header id="game-hud">
+        <div id="timer-box">03:00</div>
+        <div class="hud-ribbon" ondblclick="Game.devSkip()">Task 04/10</div>
+        <div id="iq-box">IQ: --</div>
+        <div id="life-box">❤️❤️❤️</div>
+    </header>
+
+    <div id="modal-intro" class="menace-modal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 50px; border-radius: 50px; border: 10px solid var(--p4); z-index: 10000; text-align: center; width: 450px;">
+        <h2 style="font-family:'Pacifico'; color:var(--p4); font-size: 2.5rem;">The Challenge</h2>
+        <div style="text-align:left; font-weight:800; line-height:1.6; margin-bottom: 20px;">
+            <p>🎯 Catch 15 Golden Bananas.</p>
+            <p>💀 Bomb Rain: 1st hit loses 1 life, 2nd hit loses 2 lives.</p>
+            <p>❌ Missed Banana: -2 IQ Penalty.</p>
+            <p>♻️ Helpers: SLOW (-5 IQ), STILL (-30 IQ).</p>
+        </div>
+        <button class="helper-btn" style="background:var(--p4); color:white;" onclick="Game.startTask()">START</button>
+    </div>
+
+    <div id="score-board">Banana's: <span id="count">0</span> / 15</div>
+
+    <div id="helper-controls">
+        <button class="helper-btn" onclick="Game.activateSlow(event)">SLOW (-5 IQ)</button>
+        <button class="helper-btn" onclick="Game.activateStill(event)">STILL (-30 IQ)</button>
+    </div>
+
+    <main id="active-task-layer">
+        <div id="target-banana" onclick="Game.winTask(event)">
+            <svg viewBox="0 0 100 100">
+                <path d="M20 80 Q 50 20 90 60" stroke="gold" stroke-width="20" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+    </main>
+
+    <div id="npc-mouth-overlay" class="npc-mouth-system" style="left:45px;">
+        <div class="mouth-bubble" id="mock-msg">i didnt new u were this noob</div>
+        <img src="assets/images/npc-head.png" width="220">
+    </div>
+
+    <div id="reward-hand">
+        <svg width="450" height="650" viewBox="0 0 450 650" fill="none">
+            <path d="M400 650C400 650 430 450 340 350C260 250 180 300 130 250" stroke="#5D4037" stroke-width="110" stroke-linecap="round"/>
+            <circle cx="130" cy="250" r="70" fill="#5D4037" />
+            <g id="golden-key" onclick="Game.openScratch()">
+                <rect x="80" y="220" width="100" height="25" rx="12" fill="gold" />
+                <circle cx="180" cy="232" r="35" stroke="gold" stroke-width="18" fill="none" />
+                <rect x="90" y="245" width="15" height="30" fill="gold" />
+            </g>
+        </svg>
+    </div>
+
+    <div id="scratch-container">
+        <div class="ticket-underlay">
+            <h1 style="color: #b8860b; font-size: 3.5rem; margin: 0;">GOLDEN TICKET</h1>
+            <p style="font-weight: 900; font-size: 1.2rem; color: #333;">AKSHARA: KEY #3 ACQUIRED</p>
+        </div>
+        <canvas id="scratch-surface" width="550" height="320"></canvas>
+    </div>
+
+    <button id="next-task-btn" onclick="Game.finalNavigation()">PROCEED TO TASK 05</button>
+
+    <script>
+        const Game = {
+            state: {
+                iq: 150, lives: 3, bombHits: 0, isRunning: false, isSolved: false,
+                timeLeft: 180, mouseX: 0, mouseY: 0, isStill: false,
+                insults: ["stop clicking air!", "missed again, noob", "brain lag...", "monkey is faster than u"]
+            },
+
+            init() {
+                localStorage.setItem('menace_iq', 150);
+                this.updateUI();
+                this.trackMouse();
+            },
+
+            updateUI() {
+                document.getElementById('iq-box').innerText = `IQ: ${this.state.iq}`;
+                document.getElementById('life-box').innerText = "❤️".repeat(Math.max(0, this.state.lives));
+            },
+
+            trackMouse() {
+                window.addEventListener('mousemove', (e) => {
+                    this.state.mouseX = e.clientX;
+                    this.state.mouseY = e.clientY;
+                });
+            },
+
+            startTask() {
+                document.getElementById('modal-intro').style.display = 'none';
+                document.getElementById('target-banana').style.display = 'block';
+                this.state.isRunning = true;
+                this.moveBanana();
+                this.startTimer();
+                this.startBombRain();
+                
+                // 🚀 HIGH PERFORMANCE PROXIMITY SENSOR (25ms Loop)
+                setInterval(() => this.proximityLoop(), 25);
+            },
+
+            proximityLoop() {
+                if(!this.state.isRunning || this.state.isSolved || this.state.isStill) return;
+                const banana = document.getElementById('target-banana');
+                const rect = banana.getBoundingClientRect();
+                const dist = Math.hypot(this.state.mouseX - (rect.left + 55), this.state.mouseY - (rect.top + 55));
+                
+                if(dist < 120 && Math.random() < 0.45) { // Teleport logic
+                    this.moveBanana();
+                }
+            },
+
+            moveBanana() {
+                const b = document.getElementById('target-banana');
+                b.style.left = Math.random() * (window.innerWidth - 120) + 'px';
+                b.style.top = (Math.random() * (window.innerHeight - 300) + 200) + 'px';
+            },
+
+            startBombRain() {
+                // Rain every 20 seconds
+                this.state.rainInterval = setInterval(() => {
+                    if(this.state.isSolved) return;
+                    for(let i=0; i<3; i++) { // Spawn a few bombs in a wave
+                        setTimeout(() => this.spawnRainBomb(), i * 500);
+                    }
+                }, 20000);
+            },
+
+            spawnRainBomb() {
+                const bomb = document.createElement('div');
+                bomb.className = 'bomb'; bomb.innerHTML = '💣';
+                bomb.style.left = (Math.random() * (window.innerWidth - 100)) + 'px';
+                bomb.onmouseenter = (e) => { e.stopPropagation(); this.hitBomb(bomb); };
+                document.body.appendChild(bomb);
+                setTimeout(() => { if(bomb.parentNode) bomb.remove(); }, 4000);
+            },
+
+            hitBomb(el) {
+                if(this.state.isSolved) return;
+                el.remove();
+                this.state.bombHits++;
+                
+                // 💀 Damage Logic
+                if(this.state.bombHits === 1) this.state.lives -= 1;
+                else if(this.state.bombHits === 2) this.state.lives -= 2;
+
+                this.updateUI();
+                if(this.state.lives <= 0) this.triggerGameOver();
+            },
+
+            triggerGameOver() {
+                this.state.iq -= 40; // Penalty -40 IQ
+                localStorage.setItem('menace_iq', this.state.iq);
+                alert("BOOM! You died. -40 IQ Penalty applied. Resetting...");
+                location.reload();
+            },
+
+            activateSlow(e) {
+                e.stopPropagation(); if(this.state.isSolved) return;
+                this.state.iq -= 5; this.triggerHugePenalty("-5"); this.updateUI();
+                // Logic to make teleport chance lower or move slower if needed
+            },
+
+            activateStill(e) {
+                e.stopPropagation(); if(this.state.isSolved) return;
+                this.state.iq -= 30; this.triggerHugePenalty("-30"); this.updateUI();
+                this.state.isStill = true;
+                setTimeout(() => { this.state.isStill = false; }, 3000);
+            },
+
+            winTask(e) {
+                e.stopPropagation();
+                if(this.state.isSolved) return;
+                this.state.isSolved = true;
+                document.getElementById('count').innerText = "1";
+                document.getElementById('target-banana').style.display = 'none';
+
+                const winMsg = "Catching one took u more time u neeed more banana nah nah keep it";
+                this.triggerMock(winMsg, 4000);
+                setTimeout(() => { document.getElementById('reward-hand').classList.add('active'); }, 4000);
+            },
+
+            missClick(e) {
+                if(!this.state.isRunning || this.state.isSolved) return;
+                this.state.iq -= 2; this.updateUI(); // Penalty -2
+                this.triggerMock(this.state.insults[Math.floor(Math.random()*this.state.insults.length)], 1000);
+            },
+
+            triggerMock(txt, duration) {
+                const npc = document.getElementById('npc-mouth-overlay');
+                document.getElementById('mock-msg').innerText = txt;
+                npc.classList.add('npc-active');
+                setTimeout(() => npc.classList.remove('npc-active'), duration);
+            },
+
+            triggerHugePenalty(val) {
+                const p = document.createElement('div');
+                p.className = 'huge-penalty'; p.innerText = val;
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 1200);
+            },
+
+            openScratch() {
+                document.getElementById('scratch-container').style.transform = 'translate(-50%, -50%) scale(1)';
+                const c = document.getElementById('scratch-surface'); const ctx = c.getContext('2d');
+                ctx.fillStyle = '#D4AF37'; ctx.fillRect(0,0,550,320); ctx.globalCompositeOperation = 'destination-out';
+                const scratch = (e) => {
+                    const r = c.getBoundingClientRect(); const x = (e.clientX || e.touches[0].clientX)-r.left; const y = (e.clientY || e.touches[0].clientY)-r.top;
+                    ctx.beginPath(); ctx.arc(x,y,45,0,Math.PI*2); ctx.fill();
+                    document.getElementById('next-task-btn').classList.add('reveal');
+                };
+                c.addEventListener('mousemove', scratch); c.addEventListener('touchmove', scratch);
+            },
+
+            finalNavigation() {
+                let iq = parseInt(localStorage.getItem('menace_iq'));
+                if(iq >= 150) localStorage.setItem('menace_iq', 150);
+                else { localStorage.setItem('menace_iq', iq - 10); alert("Slacky performance! Additional -10 IQ deduction."); }
+                window.location.href = 'task5.html';
+            },
+
+            startTimer() {
+                const clock = setInterval(() => {
+                    if(this.state.isSolved) { clearInterval(clock); return; }
+                    this.state.timeLeft--;
+                    let m = Math.floor(this.state.timeLeft/60); let s = this.state.timeLeft%60;
+                    document.getElementById('timer-box').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    if(this.state.timeLeft <= 0) location.reload();
+                }, 1000);
+            },
+
+            devSkip() { const p = prompt("BYPASS?"); if(p) window.location.href = `task${p}.html`; }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

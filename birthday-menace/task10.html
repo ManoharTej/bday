@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE GRAND FINALE | Birthday Menace v1000.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Bungee+Inline&family=Quicksand:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 🎨 1. THEMES & VARIABLES --- */
+        :root { 
+            --p-dark: #D81B60; --p-mid: #FF4081; --p-light: #FF80AB; 
+            --gold: #FFD700; --cyan: #00f2ff; --white: #ffffff;
+        }
+
+        * { user-select: none; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; background: #000; }
+
+        /* --- 💖 2. DYNAMIC BACKGROUND ENGINE --- */
+        #particle-canvas { position: fixed; inset: 0; z-index: -15; }
+        
+        .pink-shimmer-bg {
+            position: fixed; inset: 0; z-index: -20;
+            background: linear-gradient(-45deg, #FF0055, #FF4081, #D81B60, #880E4F, #FF80AB);
+            background-size: 400% 400%;
+            animation: bgShift 10s ease infinite;
+        }
+        @keyframes bgShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- 🏷️ 3. BOTTOM DIALOGUE SYSTEM --- */
+        #bottom-ui {
+            position: fixed; bottom: 40px; width: 100%; display: flex;
+            justify-content: center; z-index: 5000; pointer-events: none;
+        }
+        .msg-container {
+            background: rgba(255, 255, 255, 0.95); border: 8px solid var(--p-dark);
+            padding: 20px 60px; border-radius: 40px; text-align: center;
+            width: 85%; max-width: 800px; pointer-events: auto;
+            box-shadow: 0 -15px 50px rgba(0,0,0,0.4);
+            animation: slideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #status-text { font-weight: 900; font-size: 1.7rem; color: var(--p-dark); text-transform: uppercase; }
+
+        @keyframes slideUp { from { transform: translateY(150%); } to { transform: translateY(0); } }
+
+        /* --- 🎁 4. STAGE ELEMENTS --- */
+        #main-stage { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+
+        /* The Gift Box */
+        #box-hero { cursor: pointer; transition: 0.4s; z-index: 200; }
+        .gift-svg { width: 320px; filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5)); animation: boxFloat 2s infinite alternate ease-in-out; }
+        @keyframes boxFloat { from { transform: scale(1) translateY(0); } to { transform: scale(1.1) translateY(-30px); } }
+
+        /* Glitch Text */
+        #birthday-glitch { display: none; text-align: center; z-index: 300; }
+        .neon-text {
+            font-family: 'Bungee Inline'; font-size: 6.5rem; color: white;
+            text-shadow: 6px 6px var(--p-dark), -6px -6px var(--cyan);
+            animation: glitchEffect 0.15s infinite; line-height: 1.1;
+        }
+        @keyframes glitchEffect {
+            0% { transform: translate(4px, -4px) skew(2deg); filter: hue-rotate(0deg); }
+            50% { transform: translate(-4px, 4px) skew(-2deg); filter: hue-rotate(180deg); }
+            100% { transform: translate(0); }
+        }
+
+        /* The Big attractive Cake */
+        #cake-zone { display: none; flex-direction: column; align-items: center; z-index: 400; transform: scale(1.2); }
+        .cake-masterpiece { width: 550px; filter: drop-shadow(0 15px 50px rgba(255,255,255,0.4)); }
+        .tier-1 { fill: #D81B60; } .tier-2 { fill: #EC407A; } .tier-3 { fill: #F48FB1; }
+        .frosting { fill: #fff; }
+        .flame-particle { animation: flickerCandle 0.1s infinite alternate; transform-origin: center bottom; }
+        @keyframes flickerCandle { from { transform: scale(1) rotate(-3deg); } to { transform: scale(1.3) rotate(3deg); } }
+
+        /* --- 📷 5. CAMERA & CAPTURE --- */
+        #cam-overlay {
+            position: fixed; top: 30px; right: 30px; width: 280px; height: 200px;
+            border: 6px solid white; border-radius: 25px; overflow: hidden;
+            display: none; z-index: 4000; transform: scaleX(-1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+        #video-preview { width: 100%; height: 100%; object-fit: cover; }
+        .head-guide { position: absolute; inset: 0; border: 4px dashed var(--gold); border-radius: 50%; margin: 15%; opacity: 0.6; }
+
+        /* Final Result Postcard */
+        #final-reveal-screen {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9000;
+        }
+        .photo-frame { position: relative; border: 18px solid white; border-radius: 35px; box-shadow: 0 0 120px var(--gold); background: #111; overflow: visible; }
+        #canvas-output { border-radius: 10px; transform: scaleX(-1); max-width: 85vw; max-height: 65vh; display: block; }
+        
+        .hat-overlay { position: absolute; top: -140px; left: 50%; transform: translateX(-50%); width: 220px; z-index: 100; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
+        .joker-overlay { position: absolute; bottom: -60px; right: -70px; width: 220px; transform: rotate(12deg); z-index: 100; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
+
+        .btn-finale {
+            background: var(--gold); color: #222; border: none;
+            padding: 25px 100px; border-radius: 100px; font-weight: 900;
+            font-size: 2.2rem; cursor: pointer; margin-top: 50px;
+            box-shadow: 0 12px 0 #b8860b; transition: 0.2s;
+        }
+        .btn-finale:active { transform: translateY(8px); box-shadow: 0 4px 0 #b8860b; }
+
+        .white-flash { position: fixed; inset: 0; background: white; z-index: 10000; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="pink-shimmer-bg"></div>
+    <canvas id="particle-canvas"></canvas>
+    <div id="flash-bang" class="white-flash"></div>
+
+    <section id="bottom-ui">
+        <div class="msg-container">
+            <div id="status-text">Akshara, you found the final box. Click to open it!</div>
+        </div>
+    </section>
+
+    <main id="main-stage">
+        <div id="box-hero" onclick="Engine.openSurprise()">
+            <svg class="gift-svg" viewBox="0 0 120 120">
+                <defs>
+                    <linearGradient id="boxG" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#FF4081"/><stop offset="100%" style="stop-color:#AD1457"/></linearGradient>
+                </defs>
+                <rect x="10" y="40" width="100" height="70" fill="url(#boxG)" rx="6"/>
+                <rect x="5" y="25" width="110" height="22" fill="#D81B60" rx="6"/>
+                <rect x="52" y="25" width="16" height="85" fill="gold"/>
+                <path d="M60 25 Q 40 -5 10 25 M 60 25 Q 80 -5 110 25" stroke="gold" stroke-width="10" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <div id="birthday-glitch">
+            <h1 class="neon-text">HAPPY BIRTHDAY<br>AKSHARA!</h1>
+        </div>
+
+        <div id="cake-zone">
+            <svg class="cake-masterpiece" viewBox="0 0 400 400">
+                <defs>
+                    <filter id="shadow"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.3"/></filter>
+                </defs>
+                <rect x="40" y="290" width="320" height="90" class="tier-1" rx="15" filter="url(#shadow)"/>
+                <path d="M40 290 Q 70 320 100 290 T 160 290 T 220 290 T 280 290 T 360 290 V310 H40 Z" class="frosting"/>
+                <rect x="80" y="195" width="240" height="95" class="tier-2" rx="15" filter="url(#shadow)"/>
+                <path d="M80 195 Q 110 225 140 195 T 200 195 T 260 195 T 320 195 V215 H80 Z" class="frosting"/>
+                <rect x="120" y="110" width="160" height="85" class="tier-3" rx="15" filter="url(#shadow)"/>
+                <path d="M120 110 Q 150 140 180 110 T 240 110 T 280 110 V130 H120 Z" class="frosting"/>
+                <g transform="translate(160, 50)"><rect width="8" height="60" fill="#fff" rx="2"/><path class="flame-particle" d="M4 -15 Q 12 0 4 10 Q -4 0 4 -15" fill="#FFD700"/></g>
+                <g transform="translate(200, 40)"><rect width="8" height="70" fill="#fff" rx="2"/><path class="flame-particle" d="M4 -15 Q 12 0 4 10 Q -4 0 4 -15" fill="#FFD700"/></g>
+                <g transform="translate(240, 50)"><rect width="8" height="60" fill="#fff" rx="2"/><path class="flame-particle" d="M4 -15 Q 12 0 4 10 Q -4 0 4 -15" fill="#FFD700"/></g>
+            </svg>
+            <h1 style="color:white; font-family:'Pacifico'; font-size: 3rem; margin-top: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">GENTLY BLOW TO CELEBRATE!</h1>
+        </div>
+    </main>
+
+    <div id="cam-overlay">
+        <video id="video-preview" autoplay playsinline></video>
+        <div class="head-guide"></div>
+    </div>
+
+    <div id="final-reveal-screen">
+        <div class="photo-frame">
+            <canvas id="canvas-output"></canvas>
+            <svg class="hat-overlay" viewBox="0 0 100 100">
+                <path d="M10 90 L 50 10 L 90 90 Z" fill="#D81B60"/>
+                <circle cx="50" cy="10" r="12" fill="#fff"/>
+                <circle cx="35" cy="60" r="6" fill="gold"/>
+                <circle cx="65" cy="60" r="6" fill="gold"/>
+                <circle cx="50" cy="40" r="5" fill="gold"/>
+            </svg>
+            <svg class="joker-overlay" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="white" stroke="#000" stroke-width="3"/>
+                <circle cx="32" cy="42" r="7" fill="#000"/>
+                <circle cx="68" cy="42" r="7" fill="#000"/>
+                <path d="M25 65 Q 50 95 75 65" stroke="#D81B60" stroke-width="8" fill="none" stroke-linecap="round"/>
+                <circle cx="50" cy="58" r="10" fill="red"/>
+            </svg>
+        </div>
+        <h1 style="color:white; font-family:'Pacifico'; font-size: 3.5rem; margin-top: 50px; text-shadow: 0 0 30px var(--p-mid);">MENACE DEFEATED!</h1>
+        <button class="btn-finale" onclick="window.location.href='gifts.html'">GO TO GIFTS 🎁</button>
+    </section>
+
+    <script>
+        /**
+         * 🏆 THE ULTIMATE BIRTHDAY MENACE ENGINE
+         * Manages Particles, Sensitive Audio Analysis, and Canvas Capture.
+         */
+        const Engine = {
+            state: {
+                activePhase: 'initial',
+                hearts: [],
+                confetti: [],
+                hasBlown: false
+            },
+
+            init() {
+                this.setupCanvas();
+                this.frameLoop();
+            },
+
+            // --- 🎆 BACKGROUND PARTICLE SYSTEM ---
+            setupCanvas() {
+                const c = document.getElementById('particle-canvas');
+                this.ctx = c.getContext('2d');
+                this.resize();
+                window.onresize = () => this.resize();
+
+                // Generate Floating Hearts
+                for(let i=0; i<40; i++) {
+                    this.state.hearts.push({
+                        x: Math.random() * c.width,
+                        y: Math.random() * c.height,
+                        sz: Math.random() * 25 + 10,
+                        sp: Math.random() * 1.5 + 0.5,
+                        op: Math.random() * 0.4
+                    });
+                }
+            },
+
+            resize() {
+                this.ctx.canvas.width = window.innerWidth;
+                this.ctx.canvas.height = window.innerHeight;
+            },
+
+            triggerConfetti() {
+                for(let i=0; i<120; i++) {
+                    this.state.confetti.push({
+                        x: window.innerWidth / 2,
+                        y: window.innerHeight / 2,
+                        vX: (Math.random() - 0.5) * 25,
+                        vY: (Math.random() - 0.5) * 25 - 12,
+                        color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                        size: Math.random() * 12 + 4,
+                        life: 1.0
+                    });
+                }
+            },
+
+            frameLoop() {
+                const { ctx, state } = this;
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+                // Animate Hearts
+                state.hearts.forEach(h => {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${h.op})`;
+                    ctx.font = `${h.sz}px serif`;
+                    ctx.fillText('❤', h.x, h.y);
+                    h.y -= h.sp;
+                    if(h.y < -50) h.y = ctx.canvas.height + 50;
+                });
+
+                // Animate Confetti
+                state.confetti.forEach((c, idx) => {
+                    ctx.fillStyle = c.color;
+                    ctx.globalAlpha = c.life;
+                    ctx.fillRect(c.x, c.y, c.size, c.size);
+                    c.x += c.vX; c.y += c.vY;
+                    c.vY += 0.45; // Gravity
+                    c.life -= 0.008;
+                    if(c.life <= 0) state.confetti.splice(idx, 1);
+                });
+                ctx.globalAlpha = 1.0;
+
+                requestAnimationFrame(() => this.frameLoop());
+            },
+
+            // --- 🕹️ TASK LOGIC ---
+            async openSurprise() {
+                if(this.state.activePhase !== 'initial') return;
+                this.state.activePhase = 'glitch';
+                
+                this.triggerConfetti();
+                document.getElementById('box-hero').style.display = 'none';
+                document.getElementById('status-text').innerText = "SYSTEM ERROR! CELEBRATION DETECTED!";
+                
+                const glitch = document.getElementById('birthday-glitch');
+                glitch.style.display = 'block';
+                
+                await new Promise(r => setTimeout(r, 2800));
+                glitch.style.display = 'none';
+                this.showCake();
+            },
+
+            async showCake() {
+                this.state.activePhase = 'cake';
+                document.getElementById('cake-zone').style.display = 'flex';
+                document.getElementById('cam-overlay').style.display = 'block';
+                document.getElementById('status-text').innerText = "GENTLY PUFF INTO THE MIC TO EXTINGUISH!";
+                this.startMicrophone();
+            },
+
+            async startMicrophone() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    document.getElementById('video-preview').srcObject = stream;
+
+                    // Precision Audio Analyser
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const analyser = audioCtx.createAnalyser();
+                    const micSource = audioCtx.createMediaStreamSource(stream);
+                    micSource.connect(analyser);
+                    analyser.fftSize = 256;
+                    const audioBuffer = new Uint8Array(analyser.frequencyBinCount);
+
+                    const micCheck = () => {
+                        if(this.state.hasBlown) return;
+                        analyser.getByteFrequencyData(audioBuffer);
+                        // Using Max Peak for high sensitivity to "Puffs"
+                        let peakVolume = Math.max(...audioBuffer);
+                        
+                        if(peakVolume > 30) {
+                            this.blowOut();
+                        } else {
+                            requestAnimationFrame(micCheck);
+                        }
+                    };
+                    micCheck();
+                } catch (e) {
+                    alert("We need Camera & Mic to capture the final moment!");
+                }
+            },
+
+            async blowOut() {
+                this.state.hasBlown = true;
+                document.querySelectorAll('.flame-particle').forEach(f => f.style.display = 'none');
+                document.getElementById('status-text').innerText = "BOOM! HAPPY BIRTHDAY MONKEY! 📸";
+                
+                // Visual Flash
+                const flash = document.getElementById('flash-bang');
+                flash.style.display = 'block';
+                setTimeout(() => flash.style.display = 'none', 80);
+                
+                this.triggerConfetti();
+                setTimeout(() => this.takeShot(), 400);
+            },
+
+            takeShot() {
+                const video = document.getElementById('video-preview');
+                const out = document.getElementById('canvas-output');
+                const ctx = out.getContext('2d');
+                
+                out.width = video.videoWidth;
+                out.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, out.width, out.height);
+                
+                document.getElementById('final-reveal-screen').style.display = 'flex';
+                document.getElementById('bottom-ui').style.display = 'none';
+                
+                // Close hardware streams
+                video.srcObject.getTracks().forEach(t => t.stop());
+            }
+        };
+
+        window.onload = () => Engine.init();
+    </script>
+</body>
+</html>

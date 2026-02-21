@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task 07: The Dead-End Highway | Birthday Menace v450.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;800&family=Pacifico&family=Bungee+Inline&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --road: #111; --neon: #00f2ff; --neon-danger: #ff0055;
+            --grass: #081a07; --p4: #D81B60; --gold: #FFD700;
+        }
+
+        * { user-select: none; box-sizing: border-box; outline: none; }
+        body, html { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Quicksand', sans-serif; background-color: var(--grass); }
+
+        /* --- 🏷️ 1. HUD --- */
+        #top-bar { position: fixed; top: 0; width: 100%; height: 90px; display: flex; justify-content: space-between; align-items: center; padding: 0 50px; z-index: 5000; pointer-events: none; }
+        .hud-item { background: white; border: 6px solid var(--p4); padding: 12px 35px; border-radius: 50px; font-weight: 800; color: var(--p4); font-size: 1.5rem; pointer-events: auto; box-shadow: 0 8px 0 var(--p4); }
+        #key-hud { border-color: #b8860b; color: #b8860b; box-shadow: 0 8px 0 #b8860b; }
+        .hud-ribbon { background: var(--p4); color: white; padding: 10px 80px; font-family: 'Pacifico'; font-size: 1.8rem; border-radius: 0 0 20px 20px; pointer-events: auto; }
+
+        /* --- 🛣️ 2. WORLD --- */
+        #stage { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #road-svg { width: 95vw; height: 85vh; overflow: visible; z-index: 50; }
+        .strict-neon { fill: none; stroke: var(--neon); stroke-width: 150; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 25px var(--neon)); animation: electricity 0.1s infinite; }
+        .road-asphalt { fill: none; stroke: var(--road); stroke-width: 120; stroke-linecap: round; stroke-linejoin: round; }
+        @keyframes electricity { 0% { stroke: var(--neon); } 50% { stroke: var(--neon-danger); } 100% { stroke: var(--neon); } }
+
+        /* --- 🏎️ 3. CAR & EXPLOSION --- */
+        #player-car { position: absolute; width: 90px; height: 50px; z-index: 1000; pointer-events: none; }
+        .explosion { position: absolute; width: 150px; height: 150px; background: radial-gradient(circle, #ffeb3b, #ff9800, #f44336, transparent); border-radius: 50%; z-index: 1100; animation: blastOut 0.5s forwards; }
+        @keyframes blastOut { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+
+        /* --- 🌴 4. JUNGLE --- */
+        .tree { position: absolute; pointer-events: none; z-index: 5; }
+
+        /* --- 🗣️ 5. NPC --- */
+        .npc-box { position: fixed; top: -130px; right: 120px; z-index: 6000; transform: rotate(180deg); transition: 0.5s; }
+        .npc-active { top: 0 !important; }
+        .bubble { background: white; border: 5px solid var(--p4); padding: 15px 30px; border-radius: 25px; font-weight: 800; color: var(--p4); margin-top: 10px; transform: rotate(180deg); max-width: 300px; text-align: center; }
+
+        /* --- 📜 6. RULES --- */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        .card { background: white; padding: 50px; border-radius: 60px; border: 15px solid var(--p4); text-align: center; max-width: 600px; }
+        .guide { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; background: #eee; padding: 20px; border-radius: 25px; }
+
+        /* --- 🎟️ 7. UNLUCKY TICKET --- */
+        #reward-screen { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 580px; height: 350px; z-index: 9000; transition: 0.7s; }
+        .ticket-art { position: absolute; inset: 0; background: linear-gradient(135deg, #FFD700, #FFFACD, #FFD700); border: 12px solid #b8860b; border-radius: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ticket-unlucky { background: linear-gradient(135deg, #555, #222, #555) !important; border-color: #ff0055 !important; color: white !important; }
+        #scratch-layer { position: absolute; inset: 0; z-index: 10; cursor: crosshair; }
+
+        #nav-btn { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) scale(0); background: #2ecc71; color: white; padding: 25px 90px; border-radius: 100px; font-weight: 900; font-size: 1.8rem; border: 8px solid white; cursor: pointer; transition: 0.5s; z-index: 11000; }
+        .show { transform: translateX(-50%) scale(1) !important; }
+    </style>
+</head>
+<body onkeydown="Control.keys[event.code] = true" onkeyup="Control.keys[event.code] = false">
+
+    <div id="top-bar">
+        <div id="key-hud" class="hud-item">🔑 Keys: 1</div>
+        <div class="hud-ribbon">TASK 07</div>
+        <div id="iq-box" class="hud-item">IQ: --</div>
+    </div>
+
+    <div id="stage">
+        <div id="jungle-foliage"></div>
+        <svg id="road-svg" viewBox="0 0 1200 800">
+            <path id="neon-fence" class="strict-neon" d="M100,200 L400,200 Q550,200 550,350 T1000,500 L1000,700 L200,700" />
+            <path id="road-path" class="road-asphalt" d="M100,200 L400,200 Q550,200 550,350 T1000,500 L1000,700 L200,700" />
+            <circle cx="100" cy="200" r="50" fill="#2ecc71" opacity="0.6"/><text x="85" y="210" fill="white" font-weight="900" font-size="30">A</text>
+            <circle cx="200" cy="700" r="60" fill="gold" opacity="0.8"/><text x="185" y="715" fill="#222" font-weight="900" font-size="35">B</text>
+        </svg>
+        <div id="player-car">
+            <svg viewBox="0 0 120 60">
+                <rect x="10" y="15" width="100" height="35" rx="10" fill="#d32f2f" />
+                <rect x="30" y="5" width="50" height="20" rx="5" fill="#81d4fa" />
+                <circle cx="30" cy="50" r="8" fill="black" /><circle cx="90" cy="50" r="8" fill="black" />
+                <g transform="translate(45, 10) scale(0.4)"><path d="M30 10 C 10 10 10 40 30 40 L 95 40 L 95 20 L 30 20 Z" fill="gold" stroke="black" stroke-width="2"/></g>
+                <g transform="translate(65, 10) scale(0.4)"><path d="M30 10 C 10 10 10 40 30 40 L 95 40 L 95 20 L 30 20 Z" fill="gold" stroke="black" stroke-width="2"/></g>
+            </svg>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal">
+        <div class="card">
+            <h1 style="font-family:'Pacifico'; color:var(--p4);">No Mistakes.</h1>
+            <p style="font-weight: 800;">Transporting 2 Keys. If you touch the neon, the car **BLASTS**.</p>
+            <div class="guide">
+                <div>⬆️ UP = DOWN</div><div>⬇️ DOWN = UP</div>
+                <div>⬅️ LEFT = RIGHT</div><div>➡️ RIGHT = LEFT</div>
+            </div>
+            <button class="btn-start" onclick="Control.begin()">START MISSION</button>
+        </div>
+    </div>
+
+    <div id="npc-mouth" class="npc-box">
+        <img src="assets/images/npc-head.png" width="220">
+        <div class="bubble" id="npc-msg">Hahaha!</div>
+    </div>
+
+    <div id="reward-screen">
+        <div class="ticket-art" id="ticket-body">
+            <h1 id="ticket-h1" style="font-family:'Pacifico'; font-size: 3rem; margin: 0;">RESULT</h1>
+            <p id="ticket-p" style="font-weight: 900; font-size: 1.2rem;"></p>
+        </div>
+        <canvas id="scratch-layer" width="580" height="350"></canvas>
+    </div>
+
+    <button id="nav-btn" onclick="Control.navigate()">PROCEED TO TASK 08</button>
+
+    <script>
+        const Control = {
+            keys: {}, car: { x: 0, y: 0, angle: 0, speed: 7 },
+            state: { iq: 150, running: false, gameEnded: false, scratched: false },
+
+            init() {
+                let saved = parseInt(localStorage.getItem('menace_iq')) || 150;
+                this.state.iq = (saved > 150) ? 150 : saved;
+                this.refreshUI();
+                this.buildJungle();
+            },
+
+            refreshUI() {
+                document.getElementById('iq-box').innerText = `IQ: ${this.state.iq}`;
+            },
+
+            begin() {
+                document.getElementById('rules-modal').style.display = 'none';
+                this.placeCarAtA();
+                this.state.running = true;
+                this.runEngine();
+            },
+
+            placeCarAtA() {
+                const svg = document.getElementById('road-svg');
+                const pt = svg.createSVGPoint(); pt.x = 100; pt.y = 200;
+                const global = pt.matrixTransform(svg.getScreenCTM());
+                this.car.x = global.x; this.car.y = global.y;
+            },
+
+            runEngine() {
+                if(!this.state.running || this.state.gameEnded) return;
+                let dx = 0, dy = 0;
+                if(this.keys['ArrowUp'] || this.keys['KeyW']) dy = this.car.speed;
+                if(this.keys['ArrowDown'] || this.keys['KeyS']) dy = -this.car.speed;
+                if(this.keys['ArrowLeft'] || this.keys['KeyA']) dx = this.car.speed;
+                if(this.keys['ArrowRight'] || this.keys['KeyD']) dx = -this.car.speed;
+
+                this.car.x += dx; this.car.y += dy;
+                if(dx !== 0 || dy !== 0) this.car.angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                this.checkCollision();
+                this.render();
+                requestAnimationFrame(() => this.runEngine());
+            },
+
+            render() {
+                const el = document.getElementById('player-car');
+                el.style.left = (this.car.x - 45) + 'px'; el.style.top = (this.car.y - 25) + 'px';
+                el.style.transform = `rotate(${this.car.angle}deg)`;
+            },
+
+            checkCollision() {
+                const svg = document.getElementById('road-svg');
+                const path = document.getElementById('road-path');
+                const pt = svg.createSVGPoint(); pt.x = this.car.x; pt.y = this.car.y;
+                const local = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+                if(Math.hypot(local.x - 200, local.y - 700) < 60) { this.endGame(true); return; }
+
+                if(!this.isOnAsphalt(path, local, 60)) { this.endGame(false); }
+            },
+
+            isOnAsphalt(path, point, radius) {
+                const len = path.getTotalLength();
+                for(let i=0; i<len; i += 12) {
+                    const p = path.getPointAtLength(i);
+                    if(Math.hypot(point.x - p.x, point.y - p.y) < radius) return true;
+                }
+                return false;
+            },
+
+            endGame(success) {
+                this.state.gameEnded = true;
+                if(!success) {
+                    this.blast(); //
+                    this.state.iq -= 40; //
+                    this.triggerNPC("BOOM! You're a terrible driver!", 3000);
+                    document.getElementById('ticket-body').classList.add('ticket-unlucky');
+                    document.getElementById('ticket-h1').innerText = "UNLUCKY TICKET";
+                    document.getElementById('ticket-p').innerText = "IQ PENALTY -40! DELIVERY FAILED.";
+                } else {
+                    this.triggerNPC("Fine! Take your keys.", 3000);
+                    document.getElementById('ticket-h1').innerText = "MISSION SUCCESS";
+                    document.getElementById('ticket-p').innerText = "AKSHARA: +2 KEYS GRANTED!";
+                }
+                
+                setTimeout(() => {
+                    document.getElementById('reward-screen').style.transform = 'translate(-50%, -50%) scale(1)';
+                    this.initScratch();
+                }, 1500);
+            },
+
+            blast() {
+                const b = document.createElement('div');
+                b.className = 'explosion';
+                b.style.left = (this.car.x - 75) + 'px';
+                b.style.top = (this.car.y - 75) + 'px';
+                document.body.appendChild(b);
+                document.getElementById('player-car').style.display = 'none';
+                setTimeout(() => b.remove(), 500);
+            },
+
+            triggerNPC(txt, dur) {
+                const n = document.getElementById('npc-mouth');
+                document.getElementById('npc-msg').innerText = txt;
+                n.classList.add('npc-active');
+                setTimeout(() => n.classList.remove('npc-active'), dur);
+            },
+
+            initScratch() {
+                const c = document.getElementById('scratch-layer'); const ctx = c.getContext('2d');
+                ctx.fillStyle = '#D4AF37'; ctx.fillRect(0,0,580,350);
+                ctx.globalCompositeOperation = 'destination-out';
+                const run = (e) => {
+                    const r = c.getBoundingClientRect();
+                    const x = (e.clientX || e.touches[0].clientX) - r.left;
+                    const y = (e.clientY || e.touches[0].clientY) - r.top;
+                    ctx.beginPath(); ctx.arc(x,y,45,0,Math.PI*2); ctx.fill();
+                    if(!this.state.scratched) { document.getElementById('nav-btn').classList.add('show'); this.state.scratched = true; }
+                };
+                c.addEventListener('mousemove', run);
+                c.addEventListener('touchmove', (e) => { e.preventDefault(); run(e); });
+            },
+
+            buildJungle() {
+                const f = document.getElementById('jungle-foliage');
+                for(let i=0; i<60; i++) {
+                    const t = document.createElement('div'); t.className = 'tree';
+                    t.style.left = Math.random() * 100 + 'vw'; t.style.top = Math.random() * 100 + 'vh';
+                    t.innerHTML = `<svg width="80" height="100" viewBox="0 0 100 100"><path d="M50 0 L 10 90 L 90 90 Z" fill="#061c05"/></svg>`;
+                    f.appendChild(t);
+                }
+            },
+
+            navigate() {
+                let fIQ = this.state.iq;
+                if(fIQ > 150) fIQ = 150;
+                localStorage.setItem('menace_iq', fIQ);
+                window.location.href = 'task8.html';
+            }
+        };
+        window.onload = () => Control.init();
+    </script>
+</body>
+</html>
