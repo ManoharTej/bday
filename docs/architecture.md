@@ -1,6 +1,6 @@
 # 🏛️ Birthday Menace — System Architecture
 
-Welcome to the architectural layout of the **Birthday Menace — Akshara Edition**! 🐒🎈
+Welcome to the architectural layout of the **Birthday Menace — Ammamma Edition**! 🐒🎈
 
 To ensure maximum surprise, playfulness, and smooth gameplay, the project connects the user browser environment directly to external alert systems. Below is how everything flows together!
 
@@ -16,7 +16,7 @@ Here is the high-level representation of our fun system design:
 
 ## 🔄 Dynamic Data Flow (Mermaid Source)
 
-Here is the exact data flow diagram showing how Akshara's actions (playing, tab-switching, recording truths/dares, and choosing her gift) are captured and communicated:
+Here is the exact data flow diagram showing how Ammamma's actions (playing, tab-switching, recording truths/dares, and choosing her gift) are captured and communicated:
 
 ```mermaid
 graph TD
@@ -27,7 +27,7 @@ graph TD
     classDef ext fill:#f0f8ff,stroke:#1e90ff,stroke-width:2px,color:#1e90ff;
 
     %% Elements
-    Akshara([Birthday Girl: Akshara]):::actor
+    Ammamma([Birthday Girl: Ammamma]):::actor
     UI[Browser Interface: HTML/CSS]
     Engine[main.js Game Engine]
     Sentry[Tab Sentry Sentry]
@@ -38,7 +38,7 @@ graph TD
     ManoharTelegram[Manohar's Telegram Chat]:::actor
 
     %% Connections
-    Akshara -->|Plays game & inputs answers| UI
+    Ammamma -->|Plays game & inputs answers| UI
     UI -->|Events & gestures| Engine
     Engine -->|Visually updates| UI
     
@@ -49,9 +49,9 @@ graph TD
     LocalStorage -->|Syncs stats on reload| Engine
 
     %% Inputs & APIs
-    Akshara -->|Blowing on Mic| Audio
+    Ammamma -->|Blowing on Mic| Audio
     Audio -->|Puff volume trigger| Engine
-    Akshara -->|Truth & Dare speech/video| Media
+    Ammamma -->|Truth & Dare speech/video| Media
     Media -->|Generates audio/video blobs| Engine
     Engine -->|Sends multipart/form-data| TelegramAPI
     TelegramAPI -->|Pushes messages & video files| ManoharTelegram

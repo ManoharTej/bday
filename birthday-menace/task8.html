@@ -51,7 +51,7 @@
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 10000; }
         .card { background: white; padding: 40px; border-radius: 50px; border: 12px solid var(--p4); text-align: center; max-width: 550px; }
         
-        .akshara-face { width: 180px; height: 180px; object-fit: cover; border-radius: 50%; border: 8px solid var(--p4); margin: 15px auto; display: block; background: #ccc; }
+        .ammamma-face { width: 180px; height: 180px; object-fit: cover; border-radius: 50%; border: 8px solid var(--p4); margin: 15px auto; display: block; background: #ccc; }
         .choice-row { display: flex; gap: 20px; justify-content: center; margin-top: 25px; }
         .choice-btn { padding: 15px 35px; border-radius: 50px; font-weight: 900; border: none; cursor: pointer; font-size: 1.1rem; color: white; transition: 0.2s; }
         .btn-yes { background: #4caf50; } .btn-no { background: #d32f2f; }
@@ -89,12 +89,12 @@
     <div id="modal-skip" class="modal" style="display:none;">
         <div class="card">
             <h1 style="font-family:'Pacifico'; color:var(--p4);">CONFESSION TIME</h1>
-            <img src="assets/images/akshara-face.png" class="akshara-face" alt="Akshara">
+            <img src="assets/images/ammamma-face.png" class="ammamma-face" alt="Ammamma">
             <p style="font-weight: 900; font-size: 1.4rem; color: #d32f2f;">Admit the truth to bypass:</p>
-            <h2 style="font-family:'Bungee Inline';">"Akshara is a Monkey"</h2>
+            <h2 style="font-family:'Bungee Inline';">"Ammamma is a Monkey"</h2>
             <div class="choice-row">
-                <button class="choice-btn btn-yes" onclick="Game.finalizeSkip('AKSHARA IS A MONKEY')">YES, ADMIT</button>
-                <button class="choice-btn btn-no" onclick="Game.finalizeSkip('AKSHARA, I\'M IDIOT')">NO, I'M IDIOT</button>
+                <button class="choice-btn btn-yes" onclick="Game.finalizeSkip('AMMAMMA IS A MONKEY')">YES, ADMIT</button>
+                <button class="choice-btn btn-no" onclick="Game.finalizeSkip('AMMAMMA, I\'M IDIOT')">NO, I'M IDIOT</button>
             </div>
         </div>
     </div>
@@ -111,7 +111,7 @@
     <div id="reward-screen">
         <div class="ticket-bg">
             <h1 style="color: #b8860b; font-size: 3.5rem; margin: 0;">AD-BLOCKER</h1>
-            <p style="font-weight: 900; font-size: 1.4rem; color: #333;">AKSHARA: KEY #5 SECURED!</p>
+            <p style="font-weight: 900; font-size: 1.4rem; color: #333;">AMMAMMA: KEY #5 SECURED!</p>
         </div>
         <canvas id="scratch-canvas" width="600" height="450"></canvas>
     </div>
@@ -119,7 +119,7 @@
     <div id="skip-ticket">
         <div class="ticket-bg skip-theme">
             <h1 style="color: #d32f2f; font-size: 2.8rem; margin: 0;">OFFICIAL RECORD</h1>
-            <img src="assets/images/akshara-face.png" class="akshara-face" style="width:140px; height:140px; border-color:white;">
+            <img src="assets/images/ammamma-face.png" class="ammamma-face" style="width:140px; height:140px; border-color:white;">
             <h2 id="verdict-text" style="font-family:'Bungee Inline'; font-size: 1.8rem; color: #333; margin-top:15px;">ADMITTED!</h2>
         </div>
     </div>

@@ -5,7 +5,7 @@ import styled, { createGlobalStyle, keyframes } from 'styled-components';
 /**
  * PROJECT: BIRTHDAY MENACE - TASK 01: THE MONKEY TRANSFORMATION
  * Version: 75.0 (Ultimate Gauntlet Build)
- * Developer: Manoh (VBIT) | Target: Akshara
+ * Developer: Manoh (VBIT) | Target: Ammamma
  * Logic: Sliding Puzzle -> Seamless Merge -> Monkey Transition -> SVG Reward
  */
 
@@ -137,7 +137,7 @@ export default function Task1({ globalIQ, updateGlobalIQ, onTaskComplete }) {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const ASSETS = {
-    FACE: 'assets/images/akshara-face.png',
+    FACE: 'assets/images/ammamma-face.png',
     MONKEY: 'assets/images/menace-monkey.png'
   };
 

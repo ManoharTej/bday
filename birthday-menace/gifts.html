@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Treasure of Akshara | Birthday Finale</title>
+    <title>The Treasure of Ammamma | Birthday Finale</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Bungee+Inline&family=Quicksand:wght@700;800&display=swap" rel="stylesheet">
     
@@ -99,7 +99,7 @@
 
     <div id="modal-letter" class="modal-full">
         <div class="letter-paper">
-            <h2>Dearest Akshara,</h2>
+            <h2>Dearest Ammamma,</h2>
             <p>You’ve navigated the inverted roads, survived the firewall spams, and officially admitted to being a monkey. Your resilience is... concerning, but impressive!</p>
             <p>Within this chest lies the ultimate treasure: the love of your friends. They have something to say...</p>
             <button class="btn-main" onclick="App.startFriends()">READ WISHES ⏩</button>
@@ -147,11 +147,11 @@
                 keys: 0,
                 fIdx: 0,
                 friends: [
-                    { name: "CHARANA", img: "charana.png", msg: "Happy Birthday Akshara! Stop being a monkey for at least today!" },
+                    { name: "CHARANA", img: "charana.png", msg: "Happy Birthday Ammamma! Stop being a monkey for at least today!" },
                     { name: "MANOHAR", img: "manohar.png", msg: "Wishing you a year full of bananas and joy! HBD!" },
                     { name: "SAIKIRAN", img: "saikiran.png", msg: "May your IQ actually reach 150 this year. Happy Birthday!" },
                     { name: "TULASI", img: "tulasi.png", msg: "To the cutest monkey in the world, have a blast!" },
-                    { name: "LASYA", img: "lasya.png", msg: "Happy Birthday Akshara! You survived the Menace!" },
+                    { name: "LASYA", img: "lasya.png", msg: "Happy Birthday Ammamma! You survived the Menace!" },
                     { name: "NAVYA", img: "navya.png", msg: "Have an amazing day! Don't let the monkey catch you." },
                     { name: "SHAILANI", img: "shailani.png", msg: "HBD! Wishing you success and fewer glitches in life!" },
                     { name: "SANDYA", img: "sandya.png", msg: "Stay crazy, stay monkey. Happy Birthday!" },
@@ -181,7 +181,7 @@
                     this.state.keys = 5;
                     this.updateUI();
                     document.getElementById('monkey-hand').classList.remove('hand-active');
-                    document.getElementById('ui-text').innerText = "Now open the chest, Akshara!";
+                    document.getElementById('ui-text').innerText = "Now open the chest, Ammamma!";
                 }, 2500);
             },
 
@@ -220,7 +220,7 @@
                 // Telegram Logic [Add your Token/ID here]
                 const token = "YOUR_BOT_TOKEN";
                 const chatId = "YOUR_CHAT_ID";
-                const text = `🎁 Akshara picked: ${choice}`;
+                const text = `🎁 Ammamma picked: ${choice}`;
                 
                 try {
                     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

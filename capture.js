@@ -214,7 +214,7 @@ async function capture() {
             
             ctx.font = '28px Quicksand, sans-serif';
             ctx.fillStyle = '#333';
-            ctx.fillText('Akshara is officially a monkey 🐒', out.width / 2, 260);
+            ctx.fillText('Ammamma is officially a monkey 🐒', out.width / 2, 260);
             
             document.getElementById('final-reveal-screen').style.display = 'flex';
             document.getElementById('bottom-ui').style.display = 'none';

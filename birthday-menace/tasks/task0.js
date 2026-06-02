@@ -1,7 +1,7 @@
 /**
  * BIRTHDAY MENACE - MODULE: TASK 0 (THE RULEBOOK MOVIE)
  * Version: 31.0 (Master Engine Build)
- * Developer: Manoh (VBIT) | Target: Akshara (Ammamma)
+ * Developer: Manoh (VBIT) | Target: Ammamma (Ammamma)
  * ---------------------------------------------------------
  * LOGIC ARCHITECTURE SPECIFICATIONS:
  * 1. AUTOMATED CUTSCENE: Rules play sequentially without user interaction initially.
@@ -26,10 +26,10 @@ const Task0 = {
             cooldown: 500               // Anti-spam interaction delay
         },
         
-        // The Manifesto: Akshara's Rules of Engagement
+        // The Manifesto: Ammamma's Rules of Engagement
         rules: [
             "Initializing Ammamma Detection System... 🎀",
-            "Target Found: Akshara. Commencing Birthday Gauntlet! 🤓",
+            "Target Found: Ammamma. Commencing Birthday Gauntlet! 🤓",
             "Happy Birthday! I built this engine specifically to annoy you.",
             "RULE 01: You have exactly 20 Minutes to finish 10 Tasks.",
             "RULE 02: Tab switching is a crime. Penalty: -10 IQ & -1 Key. 😡",
@@ -327,7 +327,7 @@ const Task0 = {
     logHeader() {
         console.log("%c --- TASK 0 RULEBOOK BOOT --- ", "background: #222; color: #bada55; font-weight: bold;");
         console.log(`> Mode: Movie_Automated`);
-        console.log(`> Target: Akshara`);
+        console.log(`> Target: Ammamma`);
         console.log(`> Trap Status: ARMED`);
     },
 
@@ -337,7 +337,7 @@ const Task0 = {
     dumpAmmammaStats() {
         const lost = this.state.totalPenaltiesApplied * Math.abs(this.config.behavior.penaltyValue);
         console.table({
-            "Subject": "Akshara",
+            "Subject": "Ammamma",
             "Trap_Triggered": this.state.isReReading,
             "ReRead_Clicks": this.state.totalPenaltiesApplied,
             "Total_IQ_Lost": lost,

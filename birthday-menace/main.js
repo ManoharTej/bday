@@ -1,6 +1,6 @@
 /**
  * BIRTHDAY MENACE ENGINE v34.0 - MASTER CONTROLLER
- * Developer: Manoh (VBIT) | Target: Akshara (Ammamma)
+ * Developer: Manoh (VBIT) | Target: Ammamma (Ammamma)
  * ---------------------------------------------------------
  * CORE LOGIC SPECIFICATIONS:
  * 1. AUTOMATED RULE CINEMATIC: Auto-playing rules (Requirement 2)
@@ -18,7 +18,7 @@ const Game = {
         meta: {
             version: "34.0",
             developer: "Manoh (VBIT)",
-            target: "Akshara",
+            target: "Ammamma",
             status: "Maximum Annoyance Active"
         },
         timing: {
@@ -36,7 +36,7 @@ const Game = {
         // The Manifesto: Rules of Engagement
         rules: [
             "Initializing Ammamma Detection System... 🎀",
-            "Target Found: Akshara. Commencing Birthday Gauntlet! 🤓",
+            "Target Found: Ammamma. Commencing Birthday Gauntlet! 🤓",
             "Happy Birthday! Today I am officially your worst nightmare.",
             "RULE 1: No tab switching. I will detect it and reset you! 😡",
             "RULE 2: You have exactly 20 minutes for 10 Tasks.",
@@ -46,7 +46,7 @@ const Game = {
             "The movie ends. Are you ready to prove your brain is awake? 🚀"
         ],
         persistence: {
-            key: "akshara_menace_v34_stable"
+            key: "ammamma_menace_v34_stable"
         }
     },
 

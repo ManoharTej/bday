@@ -1,6 +1,6 @@
-# 🎈 Birthday Menace — Akshara Edition 🎂
+# 🎈 Birthday Menace — Ammamma Edition 🎂
 
-Welcome to the **Birthday Menace — Akshara Edition**! 🎁 This repository holds a custom-crafted, annoyingly fun web gauntlet designed to surprise Akshara (aka Ammamma) on her birthday, test her patience, make her admit to being a monkey, and eventually reveal her birthday wishes and gift choices!
+Welcome to the **Birthday Menace — Ammamma Edition**! 🎁 This repository holds a custom-crafted, annoyingly fun web gauntlet designed to surprise Ammamma (aka Ammamma) on her birthday, test her patience, make her admit to being a monkey, and eventually reveal her birthday wishes and gift choices!
 
 This project was built purely for **happiness, laughter, and hands-on web development practice**! It's loaded with custom styles, animations, interactive Web APIs, and a cheeky monkey NPC who lives to lower her IQ points.
 
@@ -8,7 +8,7 @@ This project was built purely for **happiness, laughter, and hands-on web develo
 
 ## 🌟 The Story & Experience
 
-Instead of a boring birthday card, Akshara gets a security challenge. She has exactly **20 minutes** to complete **10 interactive tasks**. Success awards her **Golden Keys**, but tab-switching triggers the visibility sentry and resets her score with massive IQ penalties!
+Instead of a boring birthday card, Ammamma gets a security challenge. She has exactly **20 minutes** to complete **10 interactive tasks**. Success awards her **Golden Keys**, but tab-switching triggers the visibility sentry and resets her score with massive IQ penalties!
 
 Let's walk through the gauntlet, page by page! 👇
 
@@ -26,7 +26,7 @@ The game opens with an automatic typewriter rules intro. If she tries to skip re
 ---
 
 ### 🧩 Task 01: Who is Monkey? (Slide Puzzle)
-Akshara must solve a sliding puzzle of her own face to prove she is human!
+Ammamma must solve a sliding puzzle of her own face to prove she is human!
 * **Rule:** Correct moves add +2 IQ, wrong moves subtract -4 IQ.
 * **Reward:** A golden banana that scratches away to reveal the first key.
 
@@ -51,7 +51,7 @@ A 4-button chain game where she must press buttons in a specific sequence to tur
 ---
 
 ### 🎤 Task 03: Truth or Dare Recording
-Akshara must select either a Truth or a Dare.
+Ammamma must select either a Truth or a Dare.
 * **Truth:** Recite an embarrassing confession.
 * **Dare:** Perform a silly physical ritual.
 * The browser utilizes the WebRTC media recorder to capture her voice/video stream and save it locally, while sending a backup directly to Manohar's Telegram!
@@ -73,7 +73,7 @@ A high-performance catch game where she must click on a fast-teleporting golden 
 ---
 
 ### 🎁 Task 05: Mystery Box Sacrifice
-Nine mystery boxes appear. Akshara must sacrifice one of her earned keys to open them, only to trigger a funny monkey jump scare and get another key stolen!
+Nine mystery boxes appear. Ammamma must sacrifice one of her earned keys to open them, only to trigger a funny monkey jump scare and get another key stolen!
 
 <p align="center">
   <img src="screenshots/05_task5_grid.png" width="600" alt="Sacrifice Grid">
@@ -111,7 +111,7 @@ Close 10 layers of retro Windows-style critical error messages. The Close "X" bu
 ---
 
 ### 🖥️ Task 09: Brainwash Quiz Terminal
-A green-scanline quiz interface that forces Akshara to answer questions like *"What is your species?"* with *"Stinky Monkey"*. Picking the wrong answer triggers a red screen-flash and massive IQ deductions.
+A green-scanline quiz interface that forces Ammamma to answer questions like *"What is your species?"* with *"Stinky Monkey"*. Picking the wrong answer triggers a red screen-flash and massive IQ deductions.
 
 <p align="center">
   <img src="screenshots/09_task9_quiz.png" width="600" alt="Quiz Terminal">
@@ -121,7 +121,7 @@ A green-scanline quiz interface that forces Akshara to answer questions like *"W
 
 ### 🎂 Task 10: Grand Finale
 The ultimate cake is revealed!
-* **Blow out candles:** Akshara must physically puff/blow into her microphone. The Web Audio analyser captures the air pressure peak and extinguishes the candles.
+* **Blow out candles:** Ammamma must physically puff/blow into her microphone. The Web Audio analyser captures the air pressure peak and extinguishes the candles.
 * **Camera Capture:** The screen flashes, captures her webcam reaction, and places it inside a celebratory postcard decorated with funny hat and joker overlays!
 
 <p align="center">
@@ -133,7 +133,7 @@ The ultimate cake is revealed!
 ---
 
 ### 🎁 The Finale: Gift Selection & Twist!
-Akshara enters the final stage. The monkey hand appears to gift her the final keys, letting her open the treasure chest.
+Ammamma enters the final stage. The monkey hand appears to gift her the final keys, letting her open the treasure chest.
 1. She reads custom birthday wishes from friends: **Charana, Manohar, Saikiran, Tulasi, Lasya, Navya, Shailani, Sandya, and Nitish**.
 2. She selects a gift (Book, stuffed toy, or ornament).
 3. The choice is transmitted to Manohar's Telegram...

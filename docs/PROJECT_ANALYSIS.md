@@ -1,6 +1,6 @@
 # 🐒 Project Analysis — Inside the Birthday Menace Engine v1000.0
 
-Hey there! Welcome to the technical deep-dive of the **Birthday Menace — Akshara Edition**. This project was hand-crafted with lots of laughter, cups of coffee, and coding practice. It's a custom-built, interactive birthday gauntlet designed to tease the birthday girl, Akshara (aka Ammamma), and make her work for her gifts!
+Hey there! Welcome to the technical deep-dive of the **Birthday Menace — Ammamma Edition**. This project was hand-crafted with lots of laughter, cups of coffee, and coding practice. It's a custom-built, interactive birthday gauntlet designed to tease the birthday girl, Ammamma (aka Ammamma), and make her work for her gifts!
 
 Here is how the chaos is engineered under the hood! 🚀🎂
 
@@ -13,7 +13,7 @@ The application is structured as a static multi-page web app. It is lightweight,
 - 🏠 **[index.html](file:///c:/Users/manoh/Downloads/Telegram%20Desktop/bday/birthday-menace/index.html)**: The main entry gate. It launches the cinematic rule introductory movie, playing typewriter text line by line.
 - ⚙️ **[main.js](file:///c:/Users/manoh/Downloads/Telegram%20Desktop/bday/birthday-menace/main.js)**: The heart and soul. Tracks global state (keys collected, IQ level, active state) and handles common utility functions.
 - 🎮 **Task Pages (`task1.html` to `task10.html`)**: Interactive mini-game components, each introducing a fresh annoyingly fun mechanic:
-  - **Task 01**: Slide puzzle using Akshara's face.
+  - **Task 01**: Slide puzzle using Ammamma's face.
   - **Task 02**: Click pattern gauntlet (sequence matching).
   - **Task 03**: Truth or Dare sensor recorder (WebRTC media capture).
   - **Task 04**: Proximity-dodging banana game with bomb rains.
@@ -48,7 +48,7 @@ To prevent the user from looking up answers or taking breaks, the engine impleme
 - The sentry deducts between **10 to 40 IQ points**, flashes an alert, and forces a full page reload, wiping any unsaved game progress.
 
 ### 4. Direct Telegram API Reporting 📨🐒
-When Akshara completes a dare (like acting like a monkey or doing squats) or selects her final birthday gift:
+When Ammamma completes a dare (like acting like a monkey or doing squats) or selects her final birthday gift:
 - The app uses browser-native `MediaRecorder` to compile audio/video chunks into a `.webm` or `.ogg` blob.
 - It automatically creates a `FormData` package and transmits it asynchronously via a POST request directly to a Telegram Bot API endpoint (`https://api.telegram.org/bot<TOKEN>/sendVideo` or `sendVoice`).
 - This sends her funny evidence logs straight to Manohar's Telegram inbox in real time, making the surprise interactive!
@@ -60,7 +60,7 @@ When Akshara completes a dare (like acting like a monkey or doing squats) or sel
 The application keeps the data flow clean and reactive:
 ```mermaid
 graph TD
-    User([Akshara]) -->|Interacts| UI[Browser HTML/CSS]
+    User([Ammamma]) -->|Interacts| UI[Browser HTML/CSS]
     UI -->|Triggers events| JS[Task Engine main.js]
     JS -->|Writes State| LS[(Local Storage)]
     LS -->|Restores State| JS
